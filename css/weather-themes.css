@@ -740,3 +740,571 @@ select:focus-visible {
     grid-row: 1 / span 2;
   }
 }
+
+body {
+  background-color: #c9dce8 !important;
+  background-image: linear-gradient(rgba(235, 244, 249, 0.42), rgba(235, 244, 249, 0.42)),
+    url('../assets/images/back.png') !important;
+  background-position: center, center 42%;
+  background-size: cover, cover;
+  background-attachment: fixed, fixed;
+}
+
+html.dark body {
+  background-color: #102332 !important;
+  background-image: linear-gradient(rgba(8, 23, 36, 0.67), rgba(8, 23, 36, 0.67)),
+    url('../assets/images/back.png') !important;
+}
+
+body > div:first-child {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.info-card,
+.panel-card,
+.rain-outlook-section,
+.site-footer {
+  border-color: rgba(114, 148, 169, 0.32) !important;
+  background-color: rgba(242, 248, 251, 0.76) !important;
+  box-shadow: 0 10px 28px rgba(26, 58, 78, 0.08) !important;
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
+html.dark .info-card,
+html.dark .panel-card,
+html.dark .rain-outlook-section,
+html.dark .site-footer {
+  border-color: rgba(164, 193, 207, 0.17) !important;
+  background-color: rgba(17, 35, 48, 0.8) !important;
+  box-shadow: 0 12px 30px rgba(0, 9, 17, 0.2) !important;
+}
+
+.metric-card:not(.weather-card .metric-card) {
+  border-color: rgba(114, 148, 169, 0.26) !important;
+  background-color: rgba(238, 246, 250, 0.72) !important;
+}
+
+html.dark .metric-card:not(.weather-card .metric-card) {
+  border-color: rgba(164, 193, 207, 0.16) !important;
+  background-color: rgba(21, 42, 56, 0.8) !important;
+}
+
+.forecast-item,
+.daily-forecast-row,
+#location-overview button {
+  background-color: rgba(238, 246, 250, 0.74) !important;
+}
+
+html.dark .forecast-item,
+html.dark .daily-forecast-row,
+html.dark #location-overview button {
+  background-color: rgba(21, 42, 56, 0.82) !important;
+}
+
+.site-footer {
+  border-top-color: rgba(114, 148, 169, 0.32) !important;
+}
+
+html.dark .site-footer {
+  border-top-color: rgba(164, 193, 207, 0.17) !important;
+}
+
+.map-weather-summary,
+.province-rain-dialog {
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.info-card {
+  border-color: color-mix(in srgb, var(--weather-accent, #3f8874) 14%, var(--line)) !important;
+}
+
+.panel-card {
+  border-color: color-mix(in srgb, var(--weather-accent, #3f8874) 12%, var(--line)) !important;
+}
+
+.site-footer {
+  background-color: color-mix(in srgb, var(--surface) 91%, transparent) !important;
+}
+
+@media (max-width: 767px) {
+  body {
+    background-attachment: scroll, scroll;
+    background-position: center, 48% center;
+  }
+}
+
+#weather-app-shell[hidden] {
+  display: none !important;
+}
+
+.welcome-screen {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(25rem, 0.92fr) minmax(0, 1.08fr);
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: auto;
+  color: #f5f8f5;
+  background: #122f2d;
+}
+
+.welcome-copy {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3rem;
+  padding: 2.25rem clamp(2rem, 5vw, 5.5rem) 2rem clamp(2rem, 5vw, 5.5rem);
+  background: #122f2d;
+}
+
+.welcome-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(245, 248, 245, 0.88);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.welcome-brand img {
+  display: block;
+  width: 40px;
+  height: auto;
+  aspect-ratio: 280 / 157;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.welcome-message {
+  max-width: 34rem;
+  margin-block: auto;
+  padding-block: 2.5rem;
+}
+
+.welcome-weather-icon {
+  display: grid;
+  width: 4.25rem;
+  height: 4.25rem;
+  margin-bottom: 2rem;
+  place-items: center;
+  border: 1px solid rgba(244, 198, 107, 0.34);
+  border-radius: 15px;
+  color: #f4c66b;
+  background: rgba(244, 198, 107, 0.09);
+}
+
+.welcome-weather-icon i {
+  font-size: 1.8rem;
+}
+
+.welcome-kicker {
+  margin-bottom: 0.75rem;
+  color: #a9cbbd;
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.welcome-message h1 {
+  max-width: 10ch;
+  color: #ffffff;
+  font-family: 'Manrope', 'DM Sans', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.welcome-description {
+  max-width: 32rem;
+  margin-top: 1.1rem;
+  color: rgba(236, 243, 237, 0.76);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.welcome-start-button {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  margin-top: 1.75rem;
+  border: 1px solid #f2b85e;
+  border-radius: 9px;
+  padding: 0.7rem 1rem 0.7rem 1.25rem;
+  color: #182e2a;
+  background: #f2b85e;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.welcome-start-button:hover {
+  transform: translateY(-1px);
+  background: #ffd080;
+}
+
+.welcome-start-button:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+}
+
+.welcome-start-button i {
+  font-size: 0.85rem;
+}
+
+.welcome-footnote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+  color: rgba(236, 243, 237, 0.7);
+  font-size: 0.72rem;
+}
+
+.welcome-footnote > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.welcome-footnote > span:first-child i {
+  color: #f2b85e;
+}
+
+.welcome-separator {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #82a99a;
+}
+
+.welcome-image-wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 100%;
+  overflow: hidden;
+  background: #315369;
+}
+
+.welcome-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  object-fit: cover;
+  object-position: center 45%;
+}
+
+.welcome-image-wrap::after {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 28, 40, 0.16);
+  content: '';
+  pointer-events: none;
+}
+
+.welcome-image-caption {
+  position: absolute;
+  z-index: 1;
+  right: 1.75rem;
+  bottom: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 7px;
+  padding: 0.65rem 0.8rem;
+  color: #ffffff;
+  background: rgba(17, 43, 55, 0.5);
+  font-size: 0.78rem;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+}
+
+.welcome-image-caption i {
+  color: #f2c66c;
+}
+
+.welcome-screen.is-leaving {
+  animation: welcome-leave 320ms ease forwards;
+}
+
+@keyframes welcome-leave {
+  to { opacity: 0; visibility: hidden; }
+}
+
+@media (max-width: 767px) {
+  .welcome-screen {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(14rem, 34svh) minmax(0, 1fr);
+  }
+
+  .welcome-image-wrap {
+    grid-row: 1;
+    min-height: 0;
+  }
+
+  .welcome-image {
+    min-height: 0;
+    height: 100%;
+    object-position: center 44%;
+  }
+
+  .welcome-image-caption {
+    right: 0.85rem;
+    bottom: 0.85rem;
+    font-size: 0.7rem;
+  }
+
+  .welcome-copy {
+    grid-row: 2;
+    min-height: 0;
+    gap: 1rem;
+    padding: 1rem 1.25rem max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .welcome-brand {
+    font-size: 0.78rem;
+  }
+
+  .welcome-brand img {
+    width: 34px;
+  }
+
+  .welcome-message {
+    padding-block: 0.5rem;
+  }
+
+  .welcome-weather-icon {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0.9rem;
+    border-radius: 11px;
+  }
+
+  .welcome-weather-icon i {
+    font-size: 1.4rem;
+  }
+
+  .welcome-kicker {
+    margin-bottom: 0.45rem;
+    font-size: 0.62rem;
+  }
+
+  .welcome-message h1 {
+    max-width: 13ch;
+    font-size: 2.35rem;
+  }
+
+  .welcome-description {
+    margin-top: 0.65rem;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .welcome-start-button {
+    width: 100%;
+    min-height: 3rem;
+    margin-top: 1rem;
+  }
+
+  .welcome-footnote {
+    gap: 0.5rem;
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-height: 700px) and (min-width: 768px) {
+  .welcome-copy {
+    gap: 1rem;
+    padding-block: 1.25rem;
+  }
+
+  .welcome-weather-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .welcome-message h1 {
+    font-size: 2.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-screen.is-leaving {
+    animation: none;
+  }
+}
+
+body {
+  background-color: #c9dce8 !important;
+  background-image: linear-gradient(rgba(235, 244, 249, 0.42), rgba(235, 244, 249, 0.42)),
+    url('../assets/images/back.png') !important;
+}
+
+html.dark body {
+  background-color: #102332 !important;
+  background-image: linear-gradient(rgba(8, 23, 36, 0.67), rgba(8, 23, 36, 0.67)),
+    url('../assets/images/back.png') !important;
+}
+
+body > div:first-child {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+header {
+  background: rgba(239, 247, 251, 0.78) !important;
+  border-color: rgba(120, 157, 179, 0.3) !important;
+  backdrop-filter: blur(18px) saturate(1.12);
+}
+
+html.dark header {
+  background: rgba(14, 31, 44, 0.84) !important;
+  border-color: rgba(164, 193, 207, 0.18) !important;
+}
+
+header nav input {
+  border-color: rgba(120, 157, 179, 0.32) !important;
+  background: rgba(239, 247, 251, 0.72) !important;
+  backdrop-filter: blur(10px);
+}
+
+html.dark header nav input {
+  border-color: rgba(164, 193, 207, 0.2) !important;
+  background: rgba(17, 37, 52, 0.78) !important;
+}
+
+#theme-toggle {
+  border-color: rgba(120, 157, 179, 0.32) !important;
+  background: rgba(239, 247, 251, 0.76) !important;
+}
+
+html.dark #theme-toggle {
+  border-color: rgba(164, 193, 207, 0.2) !important;
+  background: rgba(17, 37, 52, 0.82) !important;
+}
+
+.info-card,
+.panel-card,
+.rain-outlook-section,
+.site-footer {
+  border-color: rgba(120, 157, 179, 0.34) !important;
+  background-color: rgba(239, 247, 251, 0.72) !important;
+  box-shadow: 0 12px 32px rgba(31, 67, 90, 0.1) !important;
+  backdrop-filter: blur(16px) saturate(1.1);
+}
+
+html.dark .info-card,
+html.dark .panel-card,
+html.dark .rain-outlook-section,
+html.dark .site-footer {
+  border-color: rgba(164, 193, 207, 0.2) !important;
+  background-color: rgba(16, 35, 49, 0.8) !important;
+  box-shadow: 0 14px 34px rgba(0, 10, 19, 0.2) !important;
+}
+
+.metric-card:not(.weather-card .metric-card) {
+  border-color: rgba(120, 157, 179, 0.28) !important;
+  background-color: rgba(230, 241, 247, 0.72) !important;
+}
+
+html.dark .metric-card:not(.weather-card .metric-card) {
+  border-color: rgba(164, 193, 207, 0.18) !important;
+  background-color: rgba(23, 45, 60, 0.82) !important;
+}
+
+.forecast-item,
+.daily-forecast-row,
+#location-overview button {
+  border-color: rgba(120, 157, 179, 0.3) !important;
+  background-color: rgba(232, 243, 249, 0.72) !important;
+  backdrop-filter: blur(8px);
+}
+
+html.dark .forecast-item,
+html.dark .daily-forecast-row,
+html.dark #location-overview button {
+  border-color: rgba(164, 193, 207, 0.18) !important;
+  background-color: rgba(22, 44, 59, 0.82) !important;
+}
+
+#location-overview button.border-brand-200 {
+  background-color: color-mix(in srgb, var(--weather-accent, #3f8874) 14%, rgba(232, 243, 249, 0.8)) !important;
+}
+
+html.dark #location-overview button.border-brand-200 {
+  background-color: color-mix(in srgb, var(--weather-accent, #79afc0) 20%, rgba(22, 44, 59, 0.86)) !important;
+}
+
+#map-weather-panel .bg-slate-100 {
+  border: 1px solid rgba(120, 157, 179, 0.22) !important;
+  background: rgba(226, 239, 246, 0.78) !important;
+}
+
+html.dark #map-weather-panel .bg-slate-100 {
+  border-color: rgba(164, 193, 207, 0.14) !important;
+  background: rgba(22, 44, 59, 0.84) !important;
+}
+
+.site-footer {
+  border-top-color: rgba(120, 157, 179, 0.34) !important;
+}
+
+html.dark .site-footer {
+  border-top-color: rgba(164, 193, 207, 0.2) !important;
+}
+
+.welcome-screen,
+.welcome-copy {
+  background-color: #173b55 !important;
+}
+
+.welcome-kicker {
+  color: #b9d8e5;
+}
+
+.welcome-description,
+.welcome-footnote {
+  color: rgba(235, 245, 249, 0.8);
+}
+
+.welcome-separator {
+  background: #8eb5c5;
+}
+
+.welcome-weather-icon {
+  border-color: rgba(170, 216, 231, 0.32);
+  background: rgba(170, 216, 231, 0.1);
+}
+
+.welcome-image-caption {
+  border-color: rgba(223, 239, 247, 0.4);
+  background: rgba(17, 45, 65, 0.58);
+}
+
+.welcome-start-button {
+  border-color: #f2bd67;
+  color: #20364a;
+  background: #f2bd67;
+}
+
+.welcome-start-button:hover {
+  background: #ffd58a;
+}
+
+@media (max-width: 767px) {
+  body {
+    background-position: center, 48% center !important;
+  }
+}

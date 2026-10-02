@@ -135,7 +135,12 @@ function updateWeatherDashboard(data) {
   renderLocationOverview(CAMBODIA_LOCATIONS, appState.selectedLocation.name);
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
+let dashboardStarted = false;
+
+async function startWeatherDashboard() {
+  if (dashboardStarted) return;
+  dashboardStarted = true;
+
   populateLocationSelect(CAMBODIA_LOCATIONS);
   initializeUI(appState);
   startCambodiaClock();
@@ -247,4 +252,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   refreshWeather();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const welcomeScreen = document.getElementById('welcome-screen');
+  const dashboardShell = document.getElementById('weather-app-shell');
+  const startButton = document.getElementById('get-started');
+
+  if (!welcomeScreen || !dashboardShell || !startButton) {
+    startWeatherDashboard();
+    return;
+  }
+
+  startButton.addEventListener('click', async () => {
+    startButton.disabled = true;
+    dashboardShell.hidden = false;
+    dashboardShell.inert = false;
+    dashboardShell.removeAttribute('aria-hidden');
+    welcomeScreen.classList.add('is-leaving');
+
+    window.setTimeout(() => {
+      welcomeScreen.hidden = true;
+    }, 340);
+
+    await startWeatherDashboard();
+  }, { once: true });
 });

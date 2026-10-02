@@ -25,7 +25,44 @@
     <link rel="stylesheet" href="css/weather-themes.css" />
   </head>
   <body class="min-h-full text-slate-800 antialiased dark:text-slate-100">
-    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_40%)] dark:bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.18),_transparent_40%)]">
+    <div class="min-h-screen">
+      <section id="welcome-screen" class="welcome-screen" aria-labelledby="welcome-title">
+        <div class="welcome-copy">
+          <div class="welcome-brand">
+            <img src="assets/icons/Cam.png" alt="" width="40" height="23" />
+            <span>Cambodia Weather Intelligence</span>
+          </div>
+
+          <div class="welcome-message">
+            <div class="welcome-weather-icon" aria-hidden="true">
+              <i class="fa-solid fa-cloud-sun"></i>
+            </div>
+            <p class="welcome-kicker">CAMBODIA · LIVE WEATHER</p>
+            <h1 id="welcome-title">A clearer view of the day ahead.</h1>
+            <p class="welcome-description">Current conditions, rain outlooks, and seven-day forecasts for Cambodia's provinces and local places.</p>
+            <button id="get-started" class="welcome-start-button" type="button">
+              <span>Get started</span>
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="welcome-footnote">
+            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> 25 provinces</span>
+            <span class="welcome-separator" aria-hidden="true"></span>
+            <span>Live forecasts · Open-Meteo</span>
+          </div>
+        </div>
+
+        <div class="welcome-image-wrap">
+          <img class="welcome-image" src="assets/images/back.png" alt="Sunlight breaking through tall clouds" />
+          <div class="welcome-image-caption">
+            <i class="fa-solid fa-cloud-sun" aria-hidden="true"></i>
+            <span>Look up. Know what’s ahead.</span>
+          </div>
+        </div>
+      </section>
+
+      <div id="weather-app-shell" hidden inert aria-hidden="true">
       <header id="top" class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
         <nav class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
           <div class="flex items-center gap-3">
@@ -314,6 +351,7 @@
         </div>
         <div id="province-rain-list" class="province-rain-list"></div>
       </dialog>
+      </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
