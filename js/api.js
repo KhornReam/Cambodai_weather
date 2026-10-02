@@ -107,6 +107,40 @@ function getDailyTemperatureExtreme(samples, getExtreme) {
   return temperatures.length ? getExtreme(...temperatures) : null;
 }
 
+// Estimate perceived temperature when the source forecast does not provide it.
+// MET Norway's compact endpoint includes temperature, humidity and wind, but
+// not apparent temperature.
+function estimateApparentTemperature(temperature, humidity, windSpeed) {
+  if (![temperature, humidity, windSpeed].every(Number.isFinite)) return null;
+
+  const fahrenheit = temperature * 9 / 5 + 32;
+  const relativeHumidity = Math.max(0, Math.min(100, humidity));
+  const windMph = windSpeed / 1.60934;
+
+  if (fahrenheit >= 80 && relativeHumidity >= 40) {
+    let heatIndex = -42.379 + 2.04901523 * fahrenheit + 10.14333127 * relativeHumidity
+      - 0.22475541 * fahrenheit * relativeHumidity - 0.00683783 * fahrenheit ** 2
+      - 0.05481717 * relativeHumidity ** 2 + 0.00122874 * fahrenheit ** 2 * relativeHumidity
+      + 0.00085282 * fahrenheit * relativeHumidity ** 2
+      - 0.00000199 * fahrenheit ** 2 * relativeHumidity ** 2;
+
+    if (relativeHumidity < 13 && fahrenheit >= 80 && fahrenheit <= 112) {
+      heatIndex -= ((13 - relativeHumidity) / 4) * Math.sqrt((17 - Math.abs(fahrenheit - 95)) / 17);
+    } else if (relativeHumidity > 85 && fahrenheit >= 80 && fahrenheit <= 87) {
+      heatIndex += ((relativeHumidity - 85) / 10) * ((87 - fahrenheit) / 5);
+    }
+    return (heatIndex - 32) * 5 / 9;
+  }
+
+  if (fahrenheit <= 50 && windMph > 3) {
+    const windChill = 35.74 + 0.6215 * fahrenheit - 35.75 * windMph ** 0.16
+      + 0.4275 * fahrenheit * windMph ** 0.16;
+    return (windChill - 32) * 5 / 9;
+  }
+
+  return temperature;
+}
+
 function normalizeForecast(data, location) {
   const samples = data?.properties?.timeseries;
   if (!Array.isArray(samples) || samples.length === 0) {
@@ -159,7 +193,11 @@ function normalizeForecast(data, location) {
     current: {
       time: currentSample.time,
       temperature_2m: currentSample.temperature,
-      apparent_temperature: null,
+      apparent_temperature: estimateApparentTemperature(
+        currentSample.temperature,
+        currentSample.humidity,
+        currentSample.windSpeed
+      ),
       relative_humidity_2m: currentSample.humidity,
       is_day: currentTime >= sunriseTime && currentTime < sunsetTime ? 1 : 0,
       precipitation: currentSample.precipitation,
