@@ -64,26 +64,26 @@
 
       <div id="weather-app-shell" hidden inert aria-hidden="true">
       <header id="top" class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
-        <nav class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-lg text-white shadow-soft">
+        <nav class="site-nav mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6" aria-label="Main navigation">
+          <a class="site-nav-brand flex items-center gap-3" href="#top" aria-label="Cambodia Weather Intelligence home">
+            <span class="site-nav-mark flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-lg text-white shadow-soft">
               <i class="fa-solid fa-cloud-sun"></i>
-            </div>
+            </span>
             <div>
               <p class="text-xs font-medium uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">Cambodia</p>
-              <h1 class="text-lg font-bold text-slate-900 dark:text-white">Weather Intelligence</h1>
+              <span class="site-nav-title text-lg font-bold text-slate-900 dark:text-white">Weather Intelligence</span>
             </div>
-          </div>
+          </a>
 
-          <div class="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex dark:text-slate-300">
+          <div class="site-nav-links hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex dark:text-slate-300">
             <a href="#top" class="transition hover:text-brand-600 dark:hover:text-brand-400">Home</a>
             <a href="#provinces" class="transition hover:text-brand-600 dark:hover:text-brand-400">Provinces</a>
             <a href="#forecast" class="transition hover:text-brand-600 dark:hover:text-brand-400">Forecast</a>
             <a href="#about" class="transition hover:text-brand-600 dark:hover:text-brand-400">About</a>
           </div>
 
-          <div class="flex items-center gap-2 sm:gap-3">
-            <label class="relative block min-w-[180px] sm:min-w-[220px]">
+          <div class="site-nav-actions flex items-center gap-2 sm:gap-3">
+            <label class="site-nav-search relative block min-w-[180px] sm:min-w-[220px]">
               <span class="sr-only">Search location</span>
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
               <input
@@ -140,27 +140,32 @@
               </div>
             </div>
 
-            <div class="mt-8 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-center">
-              <div class="flex items-center gap-4 sm:gap-6">
-                <div class="weather-condition-feature flex items-center justify-center">
+            <div class="weather-current-layout mt-8 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-center">
+              <div class="weather-current-reading flex items-center gap-4 sm:gap-6">
+                <div class="weather-condition-feature flex items-center justify-center" aria-hidden="true">
                   <i id="current-weather-icon" class="fa-solid fa-cloud-sun" aria-hidden="true"></i>
                 </div>
-                <div>
+                <div class="weather-primary-reading">
                   <p id="weather-description" class="text-lg font-semibold text-slate-700 dark:text-slate-100">Loading forecast...</p>
-                  <div class="mt-2 flex items-baseline gap-3">
-                    <span id="current-temperature" class="text-5xl font-black tracking-tight text-slate-900 dark:text-white">--°</span>
-                    <span class="text-lg text-slate-500 dark:text-slate-400">Feels like <span id="feels-like">--°</span></span>
+                  <div class="mt-2 flex flex-col items-start">
+                    <span class="weather-feels-label">Feels like</span>
+                    <span id="feels-like" class="weather-feels-like text-5xl font-black tracking-tight text-slate-900 dark:text-white">--°C</span>
                   </div>
+                  <p class="weather-actual-temperature">
+                    <i class="fa-solid fa-temperature-half" aria-hidden="true"></i>
+                    <span>Actual</span>
+                    <span id="current-temperature">--°C</span>
+                  </p>
                 </div>
               </div>
 
-              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
                 <div class="metric-card">
-                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Max / Min</p>
-                  <p id="temp-range" class="mt-2 text-lg font-bold text-slate-900 dark:text-white">--° / --°</p>
+                  <p class="weather-metric-label text-xs uppercase tracking-[0.2em] text-slate-500"><i class="fa-solid fa-temperature-high" aria-hidden="true"></i> Max / Min</p>
+                  <p id="temp-range" class="mt-2 text-lg font-bold text-slate-900 dark:text-white">--°C / --°C</p>
                 </div>
                 <div class="metric-card">
-                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Humidity</p>
+                  <p class="weather-metric-label text-xs uppercase tracking-[0.2em] text-slate-500"><i class="fa-solid fa-droplet" aria-hidden="true"></i> Humidity</p>
                   <p id="humidity" class="mt-2 text-lg font-bold text-slate-900 dark:text-white">--%</p>
                 </div>
               </div>
@@ -202,29 +207,29 @@
         <section class="rain-outlook-section mb-6" aria-labelledby="rain-outlook-title">
           <div class="rain-outlook-heading">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Cambodia · Today</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Cambodia · Live now</p>
               <h2 id="rain-outlook-title" class="mt-1 text-xl font-bold text-slate-900 dark:text-white">Rain across the provinces</h2>
             </div>
-            <p id="rain-outlook-coverage" class="rain-outlook-coverage" role="status">Loading province forecasts...</p>
+            <p id="rain-outlook-coverage" class="rain-outlook-coverage" role="status">Loading current province conditions...</p>
           </div>
 
           <div class="rain-outlook-grid">
-            <button id="rain-expected-card" class="rain-summary-card rain-summary-wet" type="button" disabled aria-haspopup="dialog" aria-controls="province-rain-dialog" data-rain-group="rainExpected">
+            <button id="rain-now-card" class="rain-summary-card rain-summary-wet" type="button" disabled aria-haspopup="dialog" aria-controls="province-rain-dialog" data-rain-group="rainingNow">
               <span class="rain-summary-icon"><i class="fa-solid fa-cloud-rain" aria-hidden="true"></i></span>
-              <span class="rain-summary-count" id="rain-expected-count">--</span>
-              <span class="rain-summary-copy"><strong>Rain expected</strong><small>Tap to see provinces</small></span>
+              <span class="rain-summary-count" id="rain-now-count">--</span>
+              <span class="rain-summary-copy"><strong>Raining now</strong><small>Tap to see provinces</small></span>
               <i class="fa-solid fa-arrow-up-right-from-square rain-summary-open" aria-hidden="true"></i>
             </button>
 
-            <button id="rain-mostly-dry-card" class="rain-summary-card rain-summary-dry" type="button" disabled aria-haspopup="dialog" aria-controls="province-rain-dialog" data-rain-group="mostlyDry">
+            <button id="not-raining-now-card" class="rain-summary-card rain-summary-dry" type="button" disabled aria-haspopup="dialog" aria-controls="province-rain-dialog" data-rain-group="notRainingNow">
               <span class="rain-summary-icon"><i class="fa-solid fa-cloud-sun" aria-hidden="true"></i></span>
-              <span class="rain-summary-count" id="rain-mostly-dry-count">--</span>
-              <span class="rain-summary-copy"><strong>Mostly dry</strong><small>Tap to see provinces</small></span>
+              <span class="rain-summary-count" id="not-raining-now-count">--</span>
+              <span class="rain-summary-copy"><strong>Not raining now</strong><small>Tap to see provinces</small></span>
               <i class="fa-solid fa-arrow-up-right-from-square rain-summary-open" aria-hidden="true"></i>
             </button>
           </div>
 
-          <p class="rain-outlook-note">Rain expected means a rain or storm condition, at least a 40% chance, or 0.1 mm+ forecast accumulation. “Mostly dry” is a forecast, not a guarantee.</p>
+          <p class="rain-outlook-note">Based on each province’s latest current weather report, not today’s full-day forecast. Use Refresh to update, or tap a card to see province conditions.</p>
         </section>
 
         <section id="forecast" class="mb-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
@@ -341,7 +346,7 @@
       <dialog id="province-rain-dialog" class="province-rain-dialog" aria-labelledby="province-rain-dialog-title">
         <div class="province-rain-dialog-head">
           <div>
-            <p class="rain-dialog-eyebrow">Cambodia · <span id="province-rain-dialog-date">Today</span></p>
+            <p class="rain-dialog-eyebrow">Cambodia · Live conditions · <span id="province-rain-dialog-date">Now</span></p>
             <h2 id="province-rain-dialog-title">Province forecast</h2>
             <p id="province-rain-dialog-summary" class="province-rain-dialog-summary"></p>
           </div>

@@ -46,19 +46,18 @@ export function getWeatherTheme(code) {
   return weatherCode === 0 ? 'clear' : 'cloudy';
 }
 
-export function isRainExpectedToday(dailyData) {
-  const rawProbability = dailyData?.precipitation_probability_max?.[0];
-  const rawAccumulation = dailyData?.precipitation_sum?.[0];
-  const rawWeatherCode = dailyData?.weather_code?.[0];
-  const probability = rawProbability == null ? Number.NaN : Number(rawProbability);
-  const accumulation = rawAccumulation == null ? Number.NaN : Number(rawAccumulation);
-  const weatherCode = rawWeatherCode == null ? Number.NaN : Number(rawWeatherCode);
-  const hasForecastValue = Number.isFinite(probability) || Number.isFinite(accumulation) || Number.isFinite(weatherCode);
+export function isRainingNow(current) {
+  if (!current || typeof current !== 'object') return null;
 
-  if (!hasForecastValue) return null;
+  const rain = current.rain == null ? Number.NaN : Number(current.rain);
+  if (Number.isFinite(rain) && rain > 0) return true;
 
-  const rainyWeatherCode = [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(weatherCode);
-  return rainyWeatherCode || probability >= 40 || accumulation >= 0.1;
+  const weatherCode = current.weather_code == null ? Number.NaN : Number(current.weather_code);
+  if (!Number.isFinite(weatherCode)) {
+    return Number.isFinite(rain) ? false : null;
+  }
+
+  return [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(weatherCode);
 }
 
 export function getWeatherIconClass(code) {
@@ -78,10 +77,10 @@ export function getWeatherIconClass(code) {
 
 export function formatTemperature(value) {
   if (value === undefined || value === null || Number.isNaN(value)) {
-    return '--°';
+    return '--°C';
   }
 
-  return `${Math.round(value)}°`;
+  return `${Math.round(value)}°C`;
 }
 
 export function formatTimeFromISO(isoString) {

@@ -167,15 +167,15 @@ body {
     repeating-linear-gradient(0deg, transparent, transparent 47px, color-mix(in srgb, var(--weather-accent, #3f8874) 3%, transparent) 48px) !important;
 }
 
-header nav > div:first-child > div:first-child {
+.site-nav-mark {
   background: var(--weather-accent-strong, #173d36) !important;
 }
 
-html[data-weather-theme] header nav > div:first-child p {
+html[data-weather-theme] header .site-nav-brand p {
   color: var(--weather-accent, #3f8874) !important;
 }
 
-header nav > div:first-child p,
+header .site-nav-brand p,
 main .text-brand-600,
 .panel-card .text-brand-600 {
   color: var(--weather-accent, #3f8874) !important;
@@ -743,16 +743,24 @@ select:focus-visible {
 
 body {
   background-color: #c9dce8 !important;
-  background-image: linear-gradient(rgba(235, 244, 249, 0.42), rgba(235, 244, 249, 0.42)),
+  background-image:
+    radial-gradient(ellipse at 88% 4%, color-mix(in srgb, var(--weather-highlight, #f2cd77) 22%, transparent), transparent 34%),
+    linear-gradient(125deg,
+      color-mix(in srgb, var(--weather-hero-start, #174960) 16%, rgba(235, 244, 249, 0.48)),
+      color-mix(in srgb, var(--weather-hero-end, #689b91) 12%, rgba(235, 244, 249, 0.64))),
     url('../assets/images/back.png') !important;
-  background-position: center, center 42%;
-  background-size: cover, cover;
-  background-attachment: fixed, fixed;
+  background-position: center top, center, center 42%;
+  background-size: auto, cover, cover;
+  background-attachment: fixed, fixed, fixed;
 }
 
 html.dark body {
   background-color: #102332 !important;
-  background-image: linear-gradient(rgba(8, 23, 36, 0.67), rgba(8, 23, 36, 0.67)),
+  background-image:
+    radial-gradient(ellipse at 88% 4%, color-mix(in srgb, var(--weather-highlight, #bdd5ff) 12%, transparent), transparent 34%),
+    linear-gradient(125deg,
+      color-mix(in srgb, var(--weather-hero-start, #123149) 48%, rgba(8, 23, 36, 0.78)),
+      color-mix(in srgb, var(--weather-hero-end, #36747a) 34%, rgba(8, 23, 36, 0.84))),
     url('../assets/images/back.png') !important;
 }
 
@@ -1045,7 +1053,8 @@ html.dark .site-footer {
 @media (max-width: 767px) {
   .welcome-screen {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(14rem, 34svh) minmax(0, 1fr);
+    grid-template-rows: clamp(16rem, 42svh, 22rem) minmax(0, 1fr);
+    background: #102f48;
   }
 
   .welcome-image-wrap {
@@ -1056,69 +1065,92 @@ html.dark .site-footer {
   .welcome-image {
     min-height: 0;
     height: 100%;
-    object-position: center 44%;
+    object-position: center 38%;
+  }
+
+  .welcome-image-wrap::after {
+    background: linear-gradient(180deg, rgba(6, 23, 37, 0.08) 35%, rgba(6, 23, 37, 0.56));
   }
 
   .welcome-image-caption {
     right: 0.85rem;
-    bottom: 0.85rem;
-    font-size: 0.7rem;
+    bottom: 1.75rem;
+    border-radius: 999px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.68rem;
   }
 
   .welcome-copy {
+    display: grid;
     grid-row: 2;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    align-content: stretch;
+    z-index: 2;
     min-height: 0;
-    gap: 1rem;
-    padding: 1rem 1.25rem max(1rem, env(safe-area-inset-bottom));
+    gap: 0.75rem;
+    justify-content: stretch;
+    margin-top: -1.25rem;
+    border: 1px solid rgba(224, 241, 250, 0.18);
+    border-bottom: 0;
+    border-radius: 1.5rem 1.5rem 0 0;
+    padding: 1.15rem 1.25rem max(1.1rem, env(safe-area-inset-bottom));
+    background: linear-gradient(155deg, rgba(20, 60, 85, 0.99), rgba(12, 42, 65, 0.99)) !important;
+    box-shadow: 0 -14px 38px rgba(5, 24, 40, 0.2);
   }
 
   .welcome-brand {
-    font-size: 0.78rem;
+    gap: 0.6rem;
+    font-size: 0.75rem;
   }
 
   .welcome-brand img {
-    width: 34px;
+    width: 36px;
   }
 
   .welcome-message {
-    padding-block: 0.5rem;
+    align-self: start;
+    margin: 0;
+    padding-block: 0.15rem 0;
   }
 
   .welcome-weather-icon {
-    width: 3rem;
-    height: 3rem;
-    margin-bottom: 0.9rem;
-    border-radius: 11px;
+    width: 2.65rem;
+    height: 2.65rem;
+    margin-bottom: 0.7rem;
+    border-radius: 12px;
   }
 
   .welcome-weather-icon i {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
   }
 
   .welcome-kicker {
-    margin-bottom: 0.45rem;
+    margin-bottom: 0.4rem;
     font-size: 0.62rem;
   }
 
   .welcome-message h1 {
     max-width: 13ch;
-    font-size: 2.35rem;
+    font-size: clamp(2rem, 9vw, 2.35rem);
   }
 
   .welcome-description {
-    margin-top: 0.65rem;
-    font-size: 0.88rem;
-    line-height: 1.45;
+    margin-top: 0.55rem;
+    font-size: 0.84rem;
+    line-height: 1.5;
   }
 
   .welcome-start-button {
     width: 100%;
-    min-height: 3rem;
-    margin-top: 1rem;
+    min-height: 3.1rem;
+    margin-top: 0.9rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 22px rgba(242, 189, 103, 0.18);
   }
 
   .welcome-footnote {
-    gap: 0.5rem;
+    align-self: end;
+    gap: 0.55rem;
     font-size: 0.65rem;
   }
 }
@@ -1148,13 +1180,24 @@ html.dark .site-footer {
 
 body {
   background-color: #c9dce8 !important;
-  background-image: linear-gradient(rgba(235, 244, 249, 0.42), rgba(235, 244, 249, 0.42)),
+  background-image:
+    radial-gradient(ellipse at 88% 4%, color-mix(in srgb, var(--weather-highlight, #f2cd77) 22%, transparent), transparent 34%),
+    linear-gradient(125deg,
+      color-mix(in srgb, var(--weather-hero-start, #174960) 16%, rgba(235, 244, 249, 0.48)),
+      color-mix(in srgb, var(--weather-hero-end, #689b91) 12%, rgba(235, 244, 249, 0.64))),
     url('../assets/images/back.png') !important;
+  background-position: center top, center, center 42%;
+  background-size: auto, cover, cover;
+  background-attachment: fixed, fixed, fixed;
 }
 
 html.dark body {
   background-color: #102332 !important;
-  background-image: linear-gradient(rgba(8, 23, 36, 0.67), rgba(8, 23, 36, 0.67)),
+  background-image:
+    radial-gradient(ellipse at 88% 4%, color-mix(in srgb, var(--weather-highlight, #bdd5ff) 12%, transparent), transparent 34%),
+    linear-gradient(125deg,
+      color-mix(in srgb, var(--weather-hero-start, #123149) 48%, rgba(8, 23, 36, 0.78)),
+      color-mix(in srgb, var(--weather-hero-end, #36747a) 34%, rgba(8, 23, 36, 0.84))),
     url('../assets/images/back.png') !important;
 }
 
@@ -1268,6 +1311,226 @@ html.dark .site-footer {
 .welcome-screen,
 .welcome-copy {
   background-color: #173b55 !important;
+  background-image: linear-gradient(145deg, rgba(15, 48, 72, 0.98), rgba(28, 92, 116, 0.94)) !important;
+}
+
+header {
+  border-color: color-mix(in srgb, var(--weather-accent, #3f8874) 22%, rgba(120, 157, 179, 0.28)) !important;
+  background-color: rgba(239, 247, 251, 0.7) !important;
+  background-image: linear-gradient(105deg,
+    color-mix(in srgb, var(--weather-hero-start, #174960) 9%, transparent),
+    color-mix(in srgb, var(--weather-hero-end, #689b91) 13%, transparent)) !important;
+  backdrop-filter: blur(20px) saturate(1.2);
+}
+
+html.dark header {
+  border-color: color-mix(in srgb, var(--weather-accent, #7bc3cf) 20%, rgba(164, 193, 207, 0.16)) !important;
+  background-color: rgba(14, 31, 44, 0.78) !important;
+  background-image: linear-gradient(105deg,
+    color-mix(in srgb, var(--weather-hero-start, #123149) 25%, transparent),
+    color-mix(in srgb, var(--weather-hero-end, #36747a) 22%, transparent)) !important;
+}
+
+.site-nav-mark {
+  background: var(--weather-accent-strong, #173d36) !important;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--weather-accent-strong, #173d36) 22%, transparent) !important;
+}
+
+.site-nav {
+  min-height: 68px;
+  gap: clamp(0.75rem, 2vw, 2rem) !important;
+  padding-block: 0.65rem !important;
+}
+
+.site-nav-brand {
+  min-width: max-content;
+  gap: 0.7rem !important;
+  text-decoration: none;
+}
+
+.site-nav-mark {
+  width: 2.65rem !important;
+  height: 2.65rem !important;
+  flex: 0 0 2.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px !important;
+  font-size: 1.1rem !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--weather-accent-strong, #173d36) 22%, transparent) !important;
+}
+
+.site-nav-brand p {
+  margin-bottom: 0.08rem;
+  font-size: 0.59rem !important;
+  letter-spacing: 0.19em !important;
+  line-height: 1.2;
+}
+
+.site-nav-title {
+  display: block;
+  font-size: 0.97rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em;
+  line-height: 1.25 !important;
+  white-space: nowrap;
+}
+
+.site-nav-links {
+  gap: 0.18rem !important;
+  padding: 0.25rem;
+  border: 1px solid color-mix(in srgb, var(--weather-accent, #3f8874) 10%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 26%, transparent);
+}
+
+.site-nav-links a {
+  position: relative;
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  color: var(--muted) !important;
+  font-size: 0.77rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.site-nav-links a:hover {
+  color: var(--weather-accent-strong, #173d36) !important;
+  background: color-mix(in srgb, var(--weather-accent, #3f8874) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+html.dark .site-nav-links a:hover {
+  color: #ffffff !important;
+}
+
+.site-nav-actions {
+  gap: 0.55rem !important;
+}
+
+.site-nav-search {
+  width: clamp(11rem, 20vw, 15rem);
+  min-width: 0 !important;
+}
+
+.site-nav-search input {
+  height: 2.65rem;
+  border-radius: 999px !important;
+  padding-left: 2.35rem !important;
+  padding-right: 0.9rem !important;
+  font-size: 0.78rem !important;
+}
+
+.site-nav-search > i {
+  left: 0.9rem !important;
+}
+
+.site-nav .cambodia-flag-badge {
+  width: 2.35rem;
+  height: 2.35rem;
+  flex-basis: 2.35rem;
+  border: 1px solid color-mix(in srgb, var(--weather-accent, #3f8874) 16%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
+}
+
+.site-nav .cambodia-flag-badge img {
+  width: 1.3rem;
+  border-radius: 3px;
+  box-shadow: 0 1px 4px rgba(10, 28, 42, 0.2);
+}
+
+.site-nav #theme-toggle {
+  width: 2.65rem !important;
+  height: 2.65rem !important;
+  border-radius: 50% !important;
+  color: var(--weather-accent-strong, #173d36) !important;
+  background: color-mix(in srgb, var(--surface) 55%, transparent) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+}
+
+.site-nav #theme-toggle:hover {
+  border-color: var(--weather-accent, #3f8874) !important;
+  color: var(--weather-accent-strong, #173d36) !important;
+  background: color-mix(in srgb, var(--weather-accent, #3f8874) 13%, var(--surface)) !important;
+  transform: translateY(-1px);
+}
+
+html.dark .site-nav #theme-toggle {
+  color: var(--weather-accent, #7bc3cf) !important;
+  background: rgba(8, 23, 36, 0.32) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+@media (min-width: 768px) and (max-width: 1050px) {
+  .site-nav {
+    gap: 0.55rem !important;
+    padding-inline: 1rem !important;
+  }
+
+  .site-nav-brand {
+    gap: 0.5rem !important;
+  }
+
+  .site-nav-mark {
+    width: 2.35rem !important;
+    height: 2.35rem !important;
+    flex-basis: 2.35rem;
+  }
+
+  .site-nav-title {
+    font-size: 0.82rem !important;
+  }
+
+  .site-nav-links a {
+    padding-inline: 0.55rem;
+    font-size: 0.7rem;
+  }
+
+  .site-nav-search {
+    width: clamp(9rem, 16vw, 11rem);
+  }
+
+  .site-nav-search input {
+    font-size: 0.7rem !important;
+  }
+
+  .site-nav .cambodia-flag-badge {
+    width: 2rem;
+    height: 2rem;
+    flex-basis: 2rem;
+  }
+
+  .site-nav #theme-toggle {
+    width: 2.35rem !important;
+    height: 2.35rem !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .site-nav {
+    gap: 0.65rem !important;
+    padding-inline: 1rem !important;
+  }
+
+  .site-nav-mark {
+    width: 2.45rem !important;
+    height: 2.45rem !important;
+    flex-basis: 2.45rem;
+  }
+
+  .site-nav-title {
+    font-size: 0.92rem !important;
+  }
+
+  .site-nav-actions {
+    gap: 0.45rem !important;
+  }
+
+  .site-nav-search input {
+    height: 2.7rem;
+    font-size: 0.72rem !important;
+  }
 }
 
 .welcome-kicker {
@@ -1286,6 +1549,12 @@ html.dark .site-footer {
 .welcome-weather-icon {
   border-color: rgba(170, 216, 231, 0.32);
   background: rgba(170, 216, 231, 0.1);
+  box-shadow: 0 12px 30px rgba(4, 23, 38, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.welcome-weather-icon i,
+.weather-condition-feature i {
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--weather-highlight, #f2cd77) 35%, transparent));
 }
 
 .welcome-image-caption {
@@ -1305,6 +1574,190 @@ html.dark .site-footer {
 
 @media (max-width: 767px) {
   body {
-    background-position: center, 48% center !important;
+    background-position: center top, 48% center, 48% center !important;
+    background-attachment: scroll, scroll, scroll;
+  }
+}
+
+footer.site-footer {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-top: 1px solid color-mix(in srgb, var(--weather-accent, #3f8874) 28%, transparent) !important;
+  background:
+    linear-gradient(115deg,
+      color-mix(in srgb, var(--weather-hero-start, #174960) 15%, transparent),
+      color-mix(in srgb, var(--weather-hero-end, #689b91) 13%, transparent)),
+    color-mix(in srgb, var(--surface) 66%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(1.15);
+}
+
+html.dark footer.site-footer {
+  background:
+    linear-gradient(115deg,
+      color-mix(in srgb, var(--weather-hero-start, #123149) 34%, transparent),
+      color-mix(in srgb, var(--weather-hero-end, #36747a) 27%, transparent)),
+    color-mix(in srgb, var(--surface) 77%, transparent) !important;
+}
+
+.site-footer-inner {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.7rem;
+  padding-block: 1rem !important;
+}
+
+.footer-stat,
+.footer-clock-stat {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--weather-accent, #3f8874) 18%, var(--line)) !important;
+  border-radius: 14px;
+  padding: 0.8rem !important;
+  background: color-mix(in srgb, var(--weather-tint, rgba(63, 136, 116, 0.1)) 38%, var(--surface)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+html.dark .footer-stat,
+html.dark .footer-clock-stat {
+  border-color: color-mix(in srgb, var(--weather-accent, #7bc3cf) 20%, var(--line)) !important;
+  background: color-mix(in srgb, var(--weather-tint, rgba(71, 169, 183, 0.18)) 28%, var(--surface)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.footer-label {
+  min-height: 1.8rem;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.61rem;
+  letter-spacing: 0.045em;
+}
+
+.footer-label > i:first-child {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 1.8rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--weather-accent, #3f8874) 15%, transparent);
+  border-radius: 0.6rem;
+  color: var(--weather-accent, #3f8874);
+  background: color-mix(in srgb, var(--weather-tint, rgba(63, 136, 116, 0.1)) 72%, transparent);
+  font-size: 0.74rem;
+}
+
+.footer-value {
+  padding-left: 2.2rem;
+  font-size: 0.77rem;
+}
+
+.footer-clock-stat #live-clock {
+  gap: 0.3rem;
+  padding-left: 2.2rem;
+}
+
+.footer-clock-stat .clock-digits {
+  font-size: 1.32rem;
+}
+
+.footer-clock-stat .clock-zone {
+  font-size: 0.58rem;
+}
+
+.footer-label .clock-live {
+  gap: 0.24rem;
+  margin-left: auto;
+  font-size: 0.52rem;
+}
+
+@media (min-width: 1280px) {
+  .site-footer-inner {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+    padding-block: 1.2rem !important;
+  }
+}
+
+@media (max-width: 359px) {
+  .site-footer-inner {
+    gap: 0.5rem;
+    padding-inline: 0.65rem !important;
+  }
+
+  .footer-stat,
+  .footer-clock-stat {
+    padding: 0.65rem !important;
+  }
+
+  .footer-label {
+    font-size: 0.56rem;
+  }
+
+  .footer-value {
+    padding-left: 0;
+    font-size: 0.7rem;
+  }
+
+  .footer-clock-stat #live-clock {
+    padding-left: 0;
+  }
+}
+
+.weather-card {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 64px color-mix(in srgb, var(--weather-hero-start, #173d36) 28%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+.weather-card .metric-card {
+  min-height: 6.3rem;
+  border: 1px solid rgba(239, 249, 241, 0.17) !important;
+  border-radius: 16px !important;
+  background: rgba(8, 24, 38, 0.2) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  padding: 1rem 1.1rem !important;
+  backdrop-filter: blur(10px);
+}
+
+.weather-card .weather-metric-label {
+  color: rgba(245, 250, 246, 0.72) !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.15em !important;
+}
+
+@media (max-width: 767px) {
+  .weather-card {
+    border-radius: 20px !important;
+  }
+
+  .weather-card::before {
+    top: -7rem;
+    right: 8%;
+    width: 18rem;
+    height: 18rem;
+  }
+
+  .weather-card::after {
+    top: -5rem;
+    right: -2rem;
+    width: 18rem;
+    height: 18rem;
+    box-shadow: 0 0 0 24px rgba(233, 246, 236, 0.035), 0 0 0 48px rgba(233, 246, 236, 0.025);
+  }
+
+  .weather-card .metric-card {
+    min-height: 5.4rem;
+    padding: 0.75rem 0.85rem !important;
+  }
+
+  .weather-condition-feature {
+    width: 4.5rem;
+    height: 4.5rem;
+    flex-basis: 4.5rem;
+    border-radius: 17px;
+  }
+
+  .weather-condition-feature i {
+    font-size: 2rem;
   }
 }

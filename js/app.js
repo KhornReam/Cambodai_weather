@@ -227,6 +227,7 @@ async function startWeatherDashboard() {
 
   window.addEventListener('weather:refresh', async () => {
     await refreshWeather();
+    window.dispatchEvent(new CustomEvent('weather:refresh-provinces'));
   });
 
   mapController = await initMap(async (provinceName) => {

@@ -1,6 +1,6 @@
 import { CAMBODIA_LOCATIONS } from './locations.js';
 import { fetchWeatherData } from './api.js';
-import { formatTemperature, getWeatherDescription, getWeatherIconClass, getWeatherTheme, isRainExpectedToday } from './weather.js';
+import { formatTemperature, getWeatherDescription, getWeatherIconClass, getWeatherTheme, isRainingNow } from './weather.js';
 
 const weatherCache = new Map();
 const markerMap = new Map();
@@ -190,7 +190,7 @@ function createMarkerIcon(temperature, weatherCode) {
   return L.divIcon({
     html: `
       <div class="weather-marker" data-weather-theme="${weatherTheme}">
-        <span>${Math.round(temperature)}°</span>
+        <span>${Math.round(temperature)}°C</span>
         <small>${getWeatherIcon(weatherCode)}</small>
       </div>
     `,
@@ -200,14 +200,89 @@ function createMarkerIcon(temperature, weatherCode) {
   });
 }
 
-async function loadLocationWeather(location) {
-  if (weatherCache.has(location.name)) {
+async function loadLocationWeather(location, refresh = false) {
+  if (!refresh && weatherCache.has(location.name)) {
     return weatherCache.get(location.name);
   }
 
-  const data = await fetchWeatherData(location);
-  weatherCache.set(location.name, data);
-  return data;
+  const request = fetchWeatherData(location);
+  weatherCache.set(location.name, request);
+
+  try {
+    const data = await request;
+    weatherCache.set(location.name, data);
+    return data;
+  } catch (error) {
+    weatherCache.delete(location.name);
+    throw error;
+  }
+}
+
+function publishProvinceRainSummary(locationWeather) {
+  const rainSummary = {
+    time: null,
+    total: CAMBODIA_LOCATIONS.length,
+    available: 0,
+    rainingNow: [],
+    notRainingNow: [],
+    unavailable: []
+  };
+
+  for (const [index, result] of locationWeather.entries()) {
+    if (result.status === 'rejected') {
+      console.warn('Province current weather could not be loaded:', result.reason);
+      rainSummary.unavailable.push({ location: CAMBODIA_LOCATIONS[index], reason: 'Current weather unavailable' });
+      continue;
+    }
+
+    const { location, data } = result.value;
+    const current = data.current || {};
+    const raining = isRainingNow(current);
+    rainSummary.time ||= current.time || null;
+
+    const provinceConditions = {
+      location,
+      weatherCode: current.weather_code ?? null,
+      condition: current.weather_code == null ? null : getWeatherDescription(current.weather_code),
+      precipitation: current.rain ?? current.precipitation ?? null,
+      temperature: current.temperature_2m ?? null
+    };
+
+    if (raining === null) {
+      rainSummary.unavailable.push({ ...provinceConditions, reason: 'Current conditions unavailable' });
+    } else if (raining) {
+      rainSummary.rainingNow.push(provinceConditions);
+      rainSummary.available += 1;
+    } else {
+      rainSummary.notRainingNow.push(provinceConditions);
+      rainSummary.available += 1;
+    }
+  }
+
+  window.dispatchEvent(new CustomEvent('weather:province-rain-summary', { detail: rainSummary }));
+}
+
+async function refreshProvinceWeather() {
+  window.dispatchEvent(new CustomEvent('weather:province-rain-updating'));
+
+  const locationWeather = await Promise.allSettled(
+    CAMBODIA_LOCATIONS.map(async (location) => ({
+      location,
+      data: await loadLocationWeather(location, true)
+    }))
+  );
+
+  for (const result of locationWeather) {
+    if (result.status !== 'fulfilled') continue;
+
+    const { location, data } = result.value;
+    const marker = markerMap.get(location.name);
+    if (marker && data.current) {
+      marker.setIcon(createMarkerIcon(data.current.temperature_2m ?? 0, data.current.weather_code ?? 0));
+    }
+  }
+
+  publishProvinceRainSummary(locationWeather);
 }
 
 function renderMapInfoPanel(location, data) {
@@ -307,50 +382,14 @@ export async function initializeMapWeatherLayer(map, onProvinceSelect) {
     }))
   );
 
-  const rainSummary = {
-    date: null,
-    total: CAMBODIA_LOCATIONS.length,
-    available: 0,
-    rainExpected: [],
-    mostlyDry: [],
-    unavailable: []
-  };
+  publishProvinceRainSummary(locationWeather);
 
-  for (const [index, result] of locationWeather.entries()) {
+  for (const result of locationWeather) {
     if (result.status === 'rejected') {
-      console.warn('Province marker weather could not be loaded:', result.reason);
-      rainSummary.unavailable.push({ location: CAMBODIA_LOCATIONS[index], reason: 'Forecast unavailable' });
       continue;
     }
 
     const { location, data } = result.value;
-    const daily = data.daily || {};
-    const expectedRain = isRainExpectedToday(daily);
-    rainSummary.date ||= daily.time?.[0] || null;
-
-    const provinceForecast = {
-      location,
-      probability: daily.precipitation_probability_max?.[0] != null && Number.isFinite(Number(daily.precipitation_probability_max[0]))
-        ? Number(daily.precipitation_probability_max[0])
-        : null,
-      precipitation: daily.precipitation_sum?.[0] != null && Number.isFinite(Number(daily.precipitation_sum[0]))
-        ? Number(daily.precipitation_sum[0])
-        : null,
-      weatherCode: daily.weather_code?.[0] != null && Number.isFinite(Number(daily.weather_code[0]))
-        ? Number(daily.weather_code[0])
-        : null
-    };
-
-    if (expectedRain === null) {
-      rainSummary.unavailable.push({ ...provinceForecast, reason: 'Rain forecast unavailable' });
-    } else if (expectedRain) {
-      rainSummary.rainExpected.push(provinceForecast);
-      rainSummary.available += 1;
-    } else {
-      rainSummary.mostlyDry.push(provinceForecast);
-      rainSummary.available += 1;
-    }
-
     const current = data.current || {};
     const marker = L.marker([location.latitude, location.longitude], {
       icon: createMarkerIcon(current.temperature_2m ?? 0, current.weather_code ?? 0)
@@ -373,7 +412,11 @@ export async function initializeMapWeatherLayer(map, onProvinceSelect) {
     markerMap.set(location.name, marker);
   }
 
-  window.dispatchEvent(new CustomEvent('weather:province-rain-summary', { detail: rainSummary }));
+  window.addEventListener('weather:refresh-provinces', () => {
+    refreshProvinceWeather().catch((error) => {
+      console.error('Province current weather refresh failed:', error);
+    });
+  });
 
   return { markerLayer, markerMap, renderMapInfoPanel };
 }

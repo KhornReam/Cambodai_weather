@@ -6,29 +6,34 @@ function renderProvinceRainList(summary, groupName) {
   const list = document.getElementById('province-rain-list');
   if (!dialog || !title || !dateLabel || !summaryText || !list) return;
 
-  const rainExpected = groupName === 'rainExpected';
-  const provinces = [...(rainExpected ? summary.rainExpected : summary.mostlyDry)]
+  const rainingNow = groupName === 'rainingNow';
+  const provinces = [...(rainingNow ? summary.rainingNow : summary.notRainingNow)]
     .sort((first, second) => first.location.name.localeCompare(second.location.name));
-  const date = summary.date
-    ? new Intl.DateTimeFormat('en-GB', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
+  const observedAt = summary.time ? new Date(summary.time) : null;
+  const observationTime = observedAt && !Number.isNaN(observedAt.getTime())
+    ? `${new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23',
         timeZone: 'Asia/Phnom_Penh'
-      }).format(new Date(`${summary.date}T12:00:00+07:00`))
-    : 'Today';
+      }).format(observedAt)} ICT`
+    : 'Latest observation';
 
-  title.textContent = rainExpected ? `Rain expected · ${provinces.length}` : `Mostly dry · ${provinces.length}`;
-  dateLabel.textContent = date;
-  summaryText.textContent = rainExpected
-    ? 'These provinces meet the rain outlook criteria for today.'
-    : 'These provinces do not currently meet the rain outlook criteria for today.';
+  title.textContent = rainingNow ? `Raining now · ${provinces.length}` : `Not raining now · ${provinces.length}`;
+  dateLabel.textContent = observationTime;
+  summaryText.textContent = rainingNow
+    ? 'These provinces currently report rain or thunderstorms.'
+    : 'These provinces do not currently report rain.';
   list.replaceChildren();
 
   if (!provinces.length) {
     const empty = document.createElement('p');
     empty.className = 'province-rain-empty';
-    empty.textContent = rainExpected ? 'No provinces currently meet the rain criteria.' : 'No provinces are currently classified as mostly dry.';
+    empty.textContent = summary.available === 0
+      ? 'Current weather conditions are unavailable for all provinces.'
+      : rainingNow
+        ? 'No provinces are currently reporting rain.'
+        : 'Every available province is currently reporting rain.';
     list.append(empty);
   }
 
@@ -41,13 +46,10 @@ function renderProvinceRainList(summary, groupName) {
     name.textContent = forecast.location.name;
     const detail = document.createElement('span');
     detail.className = 'province-rain-detail';
-    const chance = forecast.probability != null && Number.isFinite(Number(forecast.probability))
-      ? `${forecast.probability}% chance`
-      : 'Chance unavailable';
     const amount = forecast.precipitation != null && Number.isFinite(Number(forecast.precipitation))
-      ? `${Number(forecast.precipitation).toFixed(1)} mm`
-      : 'amount unavailable';
-    detail.textContent = `${chance} · ${amount}`;
+      ? `${Number(forecast.precipitation).toFixed(1)} mm rain`
+      : 'rain amount unavailable';
+    detail.textContent = `${forecast.condition || 'Current conditions unavailable'} · ${amount}`;
     const arrow = document.createElement('i');
     arrow.className = 'fa-solid fa-arrow-right';
     arrow.setAttribute('aria-hidden', 'true');
@@ -64,7 +66,7 @@ function renderProvinceRainList(summary, groupName) {
   if (summary.unavailable?.length) {
     const unavailable = document.createElement('p');
     unavailable.className = 'province-rain-unavailable';
-    unavailable.textContent = `Forecast unavailable for ${summary.unavailable.length} province${summary.unavailable.length === 1 ? '' : 's'}.`;
+    unavailable.textContent = `Current conditions unavailable for ${summary.unavailable.length} province${summary.unavailable.length === 1 ? '' : 's'}.`;
     list.append(unavailable);
   }
 
@@ -91,23 +93,42 @@ export function initializeUI(appState) {
   }
 
   let provinceRainSummary = null;
+  window.addEventListener('weather:province-rain-updating', () => {
+    const coverage = document.getElementById('rain-outlook-coverage');
+    if (coverage) coverage.textContent = 'Updating live province conditions...';
+    document.querySelectorAll('[data-rain-group]').forEach((button) => {
+      button.disabled = true;
+    });
+  });
+
   window.addEventListener('weather:province-rain-summary', (event) => {
     provinceRainSummary = event.detail;
     if (!provinceRainSummary) return;
 
-    const rainCount = document.getElementById('rain-expected-count');
-    const dryCount = document.getElementById('rain-mostly-dry-count');
+    const rainCount = document.getElementById('rain-now-count');
+    const dryCount = document.getElementById('not-raining-now-count');
     const coverage = document.getElementById('rain-outlook-coverage');
-    const rainButton = document.getElementById('rain-expected-card');
-    const dryButton = document.getElementById('rain-mostly-dry-card');
+    const rainButton = document.getElementById('rain-now-card');
+    const dryButton = document.getElementById('not-raining-now-card');
 
-    if (rainCount) rainCount.textContent = provinceRainSummary.rainExpected.length;
-    if (dryCount) dryCount.textContent = provinceRainSummary.mostlyDry.length;
+    if (rainCount) rainCount.textContent = provinceRainSummary.rainingNow.length;
+    if (dryCount) dryCount.textContent = provinceRainSummary.notRainingNow.length;
     if (coverage) {
       const unavailableCount = provinceRainSummary.unavailable?.length || 0;
+      const observedAt = provinceRainSummary.time ? new Date(provinceRainSummary.time) : null;
+      const updatedTime = observedAt && !Number.isNaN(observedAt.getTime())
+        ? new Intl.DateTimeFormat('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hourCycle: 'h23',
+            timeZone: 'Asia/Phnom_Penh'
+          }).format(observedAt)
+        : null;
+      const coverageText = `${provinceRainSummary.available} of ${provinceRainSummary.total} current observations`;
+      const updatedText = updatedTime ? ` · Updated ${updatedTime} ICT` : '';
       coverage.textContent = unavailableCount
-        ? `${provinceRainSummary.available} of ${provinceRainSummary.total} forecasts available · ${unavailableCount} unavailable`
-        : `All ${provinceRainSummary.total} province forecasts available`;
+        ? `${coverageText} · ${unavailableCount} unavailable${updatedText}`
+        : `${coverageText}${updatedText}`;
     }
     if (rainButton) rainButton.disabled = false;
     if (dryButton) dryButton.disabled = false;
@@ -306,7 +327,7 @@ export function renderLocationOverview(locations, selectedName, query = '') {
           }"
         >
           <span class="font-medium">${location.name}</span>
-          <span class="text-xs text-slate-500 dark:text-slate-400">--°</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400">--°C</span>
         </button>
       `;
     })
@@ -404,9 +425,11 @@ export function setLoadingState(isLoading) {
 export function renderErrorState(message) {
   const summary = document.getElementById('weather-description');
   const temp = document.getElementById('current-temperature');
+  const feelsLike = document.getElementById('feels-like');
   const detail = document.getElementById('rain-forecast');
 
   if (summary) summary.textContent = 'Weather unavailable';
-  if (temp) temp.textContent = '--°';
+  if (temp) temp.textContent = '--°C';
+  if (feelsLike) feelsLike.textContent = '--°C';
   if (detail) detail.innerHTML = `<p class="text-amber-600 dark:text-amber-300">${message}</p>`;
 }
