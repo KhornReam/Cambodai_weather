@@ -1,8 +1,7 @@
 import { CAMBODIA_LOCATIONS } from './locations.js';
-import { fetchWeatherData } from './api.js';
+import { fetchCurrentWeatherForLocations, fetchWeatherData } from './api.js';
 import { formatTemperature, getWeatherDescription, getWeatherIconClass, getWeatherTheme, isRainingNow } from './weather.js';
 
-const weatherCache = new Map();
 const markerMap = new Map();
 const photoCache = new Map();
 let photoRequestId = 0;
@@ -200,22 +199,15 @@ function createMarkerIcon(temperature, weatherCode) {
   });
 }
 
-async function loadLocationWeather(location, refresh = false) {
-  if (!refresh && weatherCache.has(location.name)) {
-    return weatherCache.get(location.name);
+function mapBatchWeatherResults(locations, data, error = null) {
+  if (error) {
+    return locations.map(() => ({ status: 'rejected', reason: error }));
   }
 
-  const request = fetchWeatherData(location);
-  weatherCache.set(location.name, request);
-
-  try {
-    const data = await request;
-    weatherCache.set(location.name, data);
-    return data;
-  } catch (error) {
-    weatherCache.delete(location.name);
-    throw error;
-  }
+  return locations.map((location, index) => ({
+    status: 'fulfilled',
+    value: { location, data: data[index] }
+  }));
 }
 
 function publishProvinceRainSummary(locationWeather) {
@@ -230,8 +222,10 @@ function publishProvinceRainSummary(locationWeather) {
 
   for (const [index, result] of locationWeather.entries()) {
     if (result.status === 'rejected') {
-      console.warn('Province current weather could not be loaded:', result.reason);
-      rainSummary.unavailable.push({ location: CAMBODIA_LOCATIONS[index], reason: 'Current weather unavailable' });
+      rainSummary.unavailable.push({
+        location: CAMBODIA_LOCATIONS[index],
+        reason: result.reason?.message || 'Current weather unavailable'
+      });
       continue;
     }
 
@@ -265,12 +259,15 @@ function publishProvinceRainSummary(locationWeather) {
 async function refreshProvinceWeather() {
   window.dispatchEvent(new CustomEvent('weather:province-rain-updating'));
 
-  const locationWeather = await Promise.allSettled(
-    CAMBODIA_LOCATIONS.map(async (location) => ({
-      location,
-      data: await loadLocationWeather(location, true)
-    }))
-  );
+  let locationWeather;
+  try {
+    const data = await fetchCurrentWeatherForLocations(CAMBODIA_LOCATIONS);
+    locationWeather = mapBatchWeatherResults(CAMBODIA_LOCATIONS, data);
+  } catch (error) {
+    locationWeather = mapBatchWeatherResults(CAMBODIA_LOCATIONS, null, error);
+    publishProvinceRainSummary(locationWeather);
+    throw error;
+  }
 
   for (const result of locationWeather) {
     if (result.status !== 'fulfilled') continue;
@@ -335,8 +332,8 @@ function renderMapInfoPanel(location, data) {
     </div>
 
     <div class="mt-4 border-t border-slate-200 pt-4 text-sm text-slate-600 dark:border-slate-700 dark:text-slate-300">
-      <p>Sunrise: ${daily.sunrise?.[0] ? new Date(daily.sunrise[0]).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '--'}</p>
-      <p class="mt-1">Sunset: ${daily.sunset?.[0] ? new Date(daily.sunset[0]).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '--'}</p>
+      <p>Sunrise: ${daily.sunrise?.[0] ? new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Phnom_Penh' }).format(new Date(daily.sunrise[0])) : '--'}</p>
+      <p class="mt-1">Sunset: ${daily.sunset?.[0] ? new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Phnom_Penh' }).format(new Date(daily.sunset[0])) : '--'}</p>
       <p class="mt-1">Cloud cover: ${current.cloud_cover ?? '--'}%</p>
     </div>
   `;
@@ -375,12 +372,14 @@ export async function initializeMapWeatherLayer(map, onProvinceSelect) {
     }
   });
 
-  const locationWeather = await Promise.allSettled(
-    CAMBODIA_LOCATIONS.map(async (location) => ({
-      location,
-      data: await loadLocationWeather(location)
-    }))
-  );
+  let locationWeather;
+  try {
+    const data = await fetchCurrentWeatherForLocations(CAMBODIA_LOCATIONS);
+    locationWeather = mapBatchWeatherResults(CAMBODIA_LOCATIONS, data);
+  } catch (error) {
+    console.error('Province current weather could not be loaded:', error);
+    locationWeather = mapBatchWeatherResults(CAMBODIA_LOCATIONS, null, error);
+  }
 
   publishProvinceRainSummary(locationWeather);
 
@@ -405,8 +404,9 @@ export async function initializeMapWeatherLayer(map, onProvinceSelect) {
     marker.on('click', () => {
       if (onProvinceSelect) {
         onProvinceSelect(location.name);
+      } else {
+        window.dispatchEvent(new CustomEvent('location:selected', { detail: { location } }));
       }
-      renderMapInfoPanel(location, data);
     });
 
     markerMap.set(location.name, marker);
@@ -425,7 +425,7 @@ export async function refreshMarkerWeather(locationName) {
   const location = CAMBODIA_LOCATIONS.find((item) => item.name === locationName);
   if (!location) return;
 
-  const data = await loadLocationWeather(location);
+  const data = await fetchWeatherData(location);
   const marker = markerMap.get(locationName);
   if (marker && data.current) {
     marker.setIcon(createMarkerIcon(data.current.temperature_2m ?? 0, data.current.weather_code ?? 0));

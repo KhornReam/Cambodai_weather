@@ -431,5 +431,10 @@ export function renderErrorState(message) {
   if (summary) summary.textContent = 'Weather unavailable';
   if (temp) temp.textContent = '--°C';
   if (feelsLike) feelsLike.textContent = '--°C';
-  if (detail) detail.innerHTML = `<p class="text-amber-600 dark:text-amber-300">${message}</p>`;
+  if (detail) {
+    const errorMessage = document.createElement('p');
+    errorMessage.className = 'text-amber-600 dark:text-amber-300';
+    errorMessage.textContent = message;
+    detail.replaceChildren(errorMessage);
+  }
 }

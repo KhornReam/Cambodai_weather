@@ -9,7 +9,7 @@ This project follows a simple, maintainable frontend structure:
 - `index.html` — page layout and dashboard sections
 - `css/style.css` — custom design and base styling
 - `js/app.js` — app bootstrap and event wiring
-- `js/api.js` — Open-Meteo API calls
+- `js/api.js` — MET Norway forecast API calls
 - `js/locations.js` — Cambodia province and city coordinates
 - `js/weather.js` — weather processing and forecast logic
 - `js/ui.js` — dashboard rendering and interactions
@@ -31,6 +31,8 @@ This keeps the project easier to understand as it grows.
 ## Geographic data
 
 `assets/cambodia-provinces.geojson` contains Cambodia ADM1 province boundaries from [geoBoundaries](https://www.geoboundaries.org/), dataset KHM-ADM1-37992800. The dataset is sourced from OpenStreetMap and Wambacher and is distributed under the Open Data Commons Open Database License 1.0. OpenStreetMap map tiles are credited in the map controls.
+
+Weather forecasts use the public MET Norway Locationforecast API, which requires no API key. The dashboard identifies the source and links its CC BY 4.0 license. Forecast requests are limited to four at a time and use the browser's HTTP cache. The provider does not supply apparent temperature, UV index, or precipitation probabilities in this response, so those values remain unavailable rather than being fabricated. Sunrise and sunset are calculated from the selected location's coordinates.
 
 Place-name search uses Open-Meteo Geocoding API results limited to Cambodia. The selected-place panel searches Wikimedia Commons for matching photographs and displays the image source, author, and license. Successful matches are cached in browser storage. If Commons is unavailable or has no match, the panel displays the bundled Cambodia reference photo instead of staying blank, with a clear note that it is not specific to the selected place. The bundled photo is “Royal Palace, Phnom Penh Cambodia 1.jpg” by Hanay, licensed CC BY-SA 3.0; its source page is linked in the image caption.
 
@@ -100,7 +102,7 @@ git remote add origin https://github.com/YOUR-ACCOUNT/YOUR-REPOSITORY.git
 git push -u origin main
 ```
 
-Once the Pages workflow finishes, GitHub will show the public site URL in the repository's **Settings → Pages** page. No API key is needed for the current Open-Meteo forecast/geocoding endpoints.
+Once the Pages workflow finishes, GitHub will show the public site URL in the repository's **Settings → Pages** page. Weather forecasts use MET Norway and need no API key; place-name search continues to use Open-Meteo Geocoding. MET Norway asks clients to respect response caching and request limits. A low-volume static site can use simple browser requests; a higher-traffic deployment should route requests through a caching proxy.
 
 ---
 

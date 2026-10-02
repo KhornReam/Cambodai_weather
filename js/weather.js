@@ -105,6 +105,23 @@ export function getDailyHighLow(dailyData) {
   };
 }
 
+function getCambodiaDateTime(date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    hourCycle: 'h23',
+    timeZone: 'Asia/Phnom_Penh'
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+
+  return {
+    date: `${values.year}-${values.month}-${values.day}`,
+    hour: Number(values.hour)
+  };
+}
+
 export function buildNightRainMessage(hourly, sunrise, sunset) {
   if (!hourly || !sunrise || !sunset) {
     return {
@@ -113,20 +130,30 @@ export function buildNightRainMessage(hourly, sunrise, sunset) {
     };
   }
 
+  const today = getCambodiaDateTime(new Date());
+  const tomorrow = new Date(`${today.date}T12:00:00+07:00`);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowDate = getCambodiaDateTime(tomorrow).date;
+  const sunriseHour = getCambodiaDateTime(new Date(sunrise)).hour;
+  const sunsetHour = getCambodiaDateTime(new Date(sunset)).hour;
+  const beforeSunrise = today.hour < sunriseHour;
+
   const nightHours = hourly.time
     .map((time, index) => ({
       time,
-      probability: hourly.precipitation_probability?.[index] ?? 0,
-      rain: hourly.rain?.[index] ?? 0,
+      ...getCambodiaDateTime(new Date(time)),
+      probability: hourly.precipitation_probability?.[index] ?? null,
+      rain: hourly.rain?.[index] ?? hourly.precipitation?.[index] ?? 0,
       temperature: hourly.temperature_2m?.[index] ?? null,
       code: hourly.weather_code?.[index] ?? null
     }))
     .filter((entry) => {
-      const hourTime = new Date(entry.time).getHours();
-      const sunsetHour = new Date(sunset).getHours();
-      const sunriseHour = new Date(sunrise).getHours();
+      if (beforeSunrise) {
+        return entry.date === today.date && entry.hour >= today.hour && entry.hour < sunriseHour;
+      }
 
-      return hourTime >= sunsetHour || hourTime < sunriseHour;
+      return (entry.date === today.date && entry.hour >= sunsetHour) ||
+        (entry.date === tomorrowDate && entry.hour < sunriseHour);
     });
 
   if (!nightHours.length) {
@@ -136,21 +163,28 @@ export function buildNightRainMessage(hourly, sunrise, sunset) {
     };
   }
 
-  const maxProbability = Math.max(...nightHours.map((entry) => entry.probability), 0);
+  const probabilities = nightHours
+    .map((entry) => entry.probability)
+    .filter((probability) => Number.isFinite(probability));
+  const maxProbability = probabilities.length ? Math.max(...probabilities) : null;
   const totalRain = nightHours.reduce((accumulator, entry) => accumulator + (entry.rain || 0), 0);
   const averageTemp = nightHours.reduce((accumulator, entry) => accumulator + (entry.temperature ?? 0), 0) / nightHours.length;
 
-  if (maxProbability >= 70 || totalRain > 1.5) {
+  if ((maxProbability ?? 0) >= 70 || totalRain > 1.5) {
     return {
       status: 'Rain expected tonight.',
-      detail: `Most likely conditions: ${maxProbability}% chance of rain and about ${totalRain.toFixed(1)} mm expected tonight.`
+      detail: maxProbability == null
+        ? `About ${totalRain.toFixed(1)} mm of precipitation is forecast overnight.`
+        : `Most likely conditions: ${maxProbability}% chance of rain and about ${totalRain.toFixed(1)} mm expected tonight.`
     };
   }
 
-  if (maxProbability >= 40 || totalRain > 0.5) {
+  if ((maxProbability ?? 0) >= 40 || totalRain > 0.5) {
     return {
       status: 'Possible showers tonight.',
-      detail: `There is a moderate chance of light rain, with around ${totalRain.toFixed(1)} mm possible overnight.`
+      detail: maxProbability == null
+        ? `Around ${totalRain.toFixed(1)} mm of precipitation is forecast overnight.`
+        : `There is a moderate chance of light rain, with around ${totalRain.toFixed(1)} mm possible overnight.`
     };
   }
 

@@ -81,18 +81,27 @@ function updateWeatherDashboard(data) {
       .slice(0, 6)
       .map((time, index) => {
         const temp = hourly.temperature_2m[index];
-        const precipChance = hourly.precipitation_probability[index] ?? 0;
-        const isRainy = precipChance >= 40;
-        const weatherIcon = getWeatherIconClass(hourly.weather_code[index]);
+        const precipChance = hourly.precipitation_probability?.[index];
+        const precipitation = hourly.precipitation?.[index];
+        const weatherCode = hourly.weather_code[index];
+        const isRainy = precipChance != null
+          ? precipChance >= 40
+          : Number(precipitation) > 0 || getWeatherTheme(weatherCode) === 'rain' || getWeatherTheme(weatherCode) === 'storm';
+        const weatherIcon = getWeatherIconClass(weatherCode);
+        const rainLabel = precipChance != null
+          ? `${precipChance}% rain`
+          : precipitation != null
+            ? `${Number(precipitation).toFixed(1)} mm`
+            : 'Rain --';
 
         return `
           <div class="forecast-item ${isRainy ? 'rainy' : ''}" data-weather-theme="${getWeatherTheme(hourly.weather_code[index])}">
-            <p class="text-xs text-slate-500 dark:text-slate-400">${new Date(time).toLocaleTimeString([], { hour: 'numeric' })}</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">${new Intl.DateTimeFormat([], { hour: 'numeric', timeZone: 'Asia/Phnom_Penh' }).format(new Date(time))}</p>
             <div class="mt-2 flex justify-center text-lg text-sky-500">
               <i class="fa-solid ${weatherIcon}" aria-hidden="true"></i>
             </div>
             <p class="mt-2 text-center text-lg font-bold">${formatTemperature(temp)}</p>
-            <p class="mt-1 text-center text-xs text-slate-500 dark:text-slate-400">${precipChance}% rain</p>
+            <p class="mt-1 text-center text-xs text-slate-500 dark:text-slate-400">${rainLabel}</p>
           </div>
         `;
       })
