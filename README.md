@@ -89,7 +89,7 @@ http://localhost:8000
 
 ## Publish to the web
 
-The site is static and is configured to deploy to GitHub Pages with `.github/workflows/pages.yml`. After pushing the project to a GitHub repository, enable **Settings → Pages → Build and deployment → Source: GitHub Actions**. The workflow builds the CSS and publishes the site whenever changes are pushed to `main`.
+The site is static and is configured to deploy to GitHub Pages with `.github/workflows/pages.yml`. After pushing the project to a GitHub repository, enable **Settings → Pages → Build and deployment → Source: GitHub Actions**. The workflow builds the CSS and publishes the site whenever changes are pushed to `master`.
 
 To connect this folder to a new GitHub repository, create an empty repository on GitHub, then run these commands from the project directory. Replace the remote URL with the one shown by GitHub:
 
@@ -97,9 +97,9 @@ To connect this folder to a new GitHub repository, create an empty repository on
 git init
 git add .
 git commit -m "Prepare Cambodia Weather for deployment"
-git branch -M main
+git branch -M master
 git remote add origin https://github.com/YOUR-ACCOUNT/YOUR-REPOSITORY.git
-git push -u origin main
+git push -u origin master
 ```
 
 Once the Pages workflow finishes, GitHub will show the public site URL in the repository's **Settings → Pages** page. Weather forecasts use MET Norway and need no API key; place-name search continues to use Open-Meteo Geocoding. MET Norway asks clients to respect response caching and request limits. A low-volume static site can use simple browser requests; a higher-traffic deployment should route requests through a caching proxy.
