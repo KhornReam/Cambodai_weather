@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Cambodia Weather Intelligence Dashboard - live weather forecasts for Cambodia."
+    />
+    <title>Cambodia Weather Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="css/output.css" />
+  </head>
+  <body class="min-h-full text-slate-800 antialiased dark:text-slate-100">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_40%)] dark:bg-[radial-gradient(circle_at_top,_rgba(96,165,250,0.18),_transparent_40%)]">
+      <header id="top" class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/80">
+        <nav class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600 text-lg text-white shadow-soft">
+              <i class="fa-solid fa-cloud-sun"></i>
+            </div>
+            <div>
+              <p class="text-xs font-medium uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">Cambodia</p>
+              <h1 class="text-lg font-bold text-slate-900 dark:text-white">Weather Intelligence</h1>
+            </div>
+          </div>
+
+          <div class="hidden items-center gap-6 text-sm font-medium text-slate-600 md:flex dark:text-slate-300">
+            <a href="#top" class="transition hover:text-brand-600 dark:hover:text-brand-400">Home</a>
+            <a href="#provinces" class="transition hover:text-brand-600 dark:hover:text-brand-400">Provinces</a>
+            <a href="#forecast" class="transition hover:text-brand-600 dark:hover:text-brand-400">Forecast</a>
+            <a href="#about" class="transition hover:text-brand-600 dark:hover:text-brand-400">About</a>
+          </div>
+
+          <div class="flex items-center gap-2 sm:gap-3">
+            <label class="relative block min-w-[180px] sm:min-w-[220px]">
+              <span class="sr-only">Search location</span>
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input
+                id="location-search"
+                type="search"
+                placeholder="Search province, town or village"
+                class="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-500/20"
+              />
+            </label>
+
+            <button
+              id="theme-toggle"
+              type="button"
+              class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-700 transition hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              aria-label="Toggle dark mode"
+            >
+              <i class="fa-solid fa-moon"></i>
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      <main class="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:py-8">
+        <section class="mb-6">
+          <div class="weather-card rounded-[28px] p-5 md:p-7">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                  <i class="fa-solid fa-location-dot text-brand-500"></i>
+                  <span id="selected-location">Phnom Penh</span>
+                </div>
+                <p id="current-date-time" class="text-sm text-slate-500 dark:text-slate-400">Loading local time...</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <select
+                  id="location-select"
+                  class="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-brand-500/20"
+                  aria-label="Select location"
+                >
+                  <option value="">Select a province</option>
+                </select>
+                <button
+                  id="refresh-weather"
+                  type="button"
+                  class="rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-brand-700"
+                >
+                  <i class="fa-solid fa-arrows-rotate mr-2"></i>Refresh
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-8 grid gap-6 lg:grid-cols-[1.6fr_1fr] lg:items-center">
+              <div class="flex items-center gap-4 sm:gap-6">
+                <div class="weather-condition-feature flex items-center justify-center">
+                  <i id="current-weather-icon" class="fa-solid fa-cloud-sun" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <p id="weather-description" class="text-lg font-semibold text-slate-700 dark:text-slate-100">Loading forecast...</p>
+                  <div class="mt-2 flex items-baseline gap-3">
+                    <span id="current-temperature" class="text-5xl font-black tracking-tight text-slate-900 dark:text-white">--°</span>
+                    <span class="text-lg text-slate-500 dark:text-slate-400">Feels like <span id="feels-like">--°</span></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                <div class="metric-card">
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Max / Min</p>
+                  <p id="temp-range" class="mt-2 text-lg font-bold text-slate-900 dark:text-white">--° / --°</p>
+                </div>
+                <div class="metric-card">
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Humidity</p>
+                  <p id="humidity" class="mt-2 text-lg font-bold text-slate-900 dark:text-white">--%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div class="info-card">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-500">Wind</span>
+              <i class="fa-solid fa-wind text-brand-500"></i>
+            </div>
+            <p id="wind-speed" class="mt-5 text-2xl font-bold">-- km/h</p>
+          </div>
+          <div class="info-card">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-500">UV Index</span>
+              <i class="fa-solid fa-sun text-amber-500"></i>
+            </div>
+            <p id="uv-index" class="mt-5 text-2xl font-bold">--</p>
+          </div>
+          <div class="info-card">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-500">Clouds</span>
+              <i class="fa-solid fa-cloud text-sky-500"></i>
+            </div>
+            <p id="cloud-cover" class="mt-5 text-2xl font-bold">--%</p>
+          </div>
+          <div class="info-card">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-500">Precipitation</span>
+              <i class="fa-solid fa-droplet text-cyan-500"></i>
+            </div>
+            <p id="precipitation" class="mt-5 text-2xl font-bold">-- mm</p>
+          </div>
+        </section>
+
+        <section id="forecast" class="mb-6 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+          <div class="panel-card p-5 md:p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Next 24 hours</p>
+                <h2 class="mt-1 text-xl font-bold text-slate-900 dark:text-white">Hourly forecast</h2>
+              </div>
+            </div>
+            <div id="hourly-forecast" class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6"></div>
+          </div>
+
+          <div class="panel-card p-5 md:p-6">
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Night forecast</p>
+              <h2 class="mt-1 text-xl font-bold text-slate-900 dark:text-white">Will It Rain Tonight?</h2>
+            </div>
+            <div id="rain-forecast" class="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+              <p>Loading nighttime forecast...</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-6 grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+          <div class="panel-card p-5 md:p-6">
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">7-day outlook</p>
+              <h2 class="mt-1 text-xl font-bold text-slate-900 dark:text-white">Weekly forecast</h2>
+            </div>
+            <div id="daily-forecast" class="space-y-3"></div>
+          </div>
+
+          <div class="panel-card p-5 md:p-6">
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Cambodia</p>
+              <h2 class="mt-1 text-xl font-bold text-slate-900 dark:text-white">Overview</h2>
+            </div>
+            <div id="provinces">
+              <div id="location-overview" class="space-y-3"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-6">
+          <div class="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Interactive map</p>
+              <h2 class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">Explore Weather Across Cambodia</h2>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Interactive real-time weather conditions across 24 provinces and Phnom Penh.</p>
+          </div>
+
+          <div class="mb-4 flex flex-wrap items-center gap-2">
+            <button id="reset-map-btn" type="button" class="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+              <i class="fa-solid fa-rotate-left mr-2"></i>Reset map
+            </button>
+            <button id="fullscreen-map-btn" type="button" class="rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+              <i class="fa-solid fa-expand mr-2"></i>Fullscreen
+            </button>
+          </div>
+
+          <div class="grid gap-6 xl:grid-cols-[2fr_1fr]">
+            <div class="panel-card p-3 md:p-4">
+              <div id="map" class="h-[440px] w-full overflow-hidden rounded-2xl"></div>
+            </div>
+
+            <aside class="panel-card p-5 md:p-6">
+              <div id="map-weather-panel">
+                <p class="text-sm text-slate-500 dark:text-slate-400">Select a province on the map to view live weather details.</p>
+              </div>
+            </aside>
+          </div>
+
+          <div id="map-legend" class="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-sun" aria-hidden="true"></i> Clear</span>
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-cloud-sun" aria-hidden="true"></i> Partly cloudy</span>
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-cloud" aria-hidden="true"></i> Cloudy</span>
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-cloud-rain" aria-hidden="true"></i> Rain
+            </span>
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-cloud-bolt" aria-hidden="true"></i> Thunderstorm</span>
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-smog" aria-hidden="true"></i> Fog</span>
+          </div>
+          <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            Province boundaries: <a class="underline" href="https://www.geoboundaries.org/" target="_blank" rel="noreferrer">geoBoundaries</a>, sourced from OpenStreetMap and Wambacher (ODbL 1.0).
+          </p>
+        </section>
+      </main>
+
+      <footer id="about" class="site-footer border-t border-slate-200 bg-white/70 dark:border-slate-800 dark:bg-slate-950/70">
+        <div class="site-footer-inner mx-auto grid max-w-7xl gap-4 px-4 py-5 text-sm text-slate-600 sm:grid-cols-2 xl:grid-cols-4 dark:text-slate-300 md:px-6">
+          <div class="footer-stat">
+            <p class="footer-label"><i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i> Weather source</p>
+            <p class="footer-value">Open-Meteo</p>
+          </div>
+          <div class="footer-stat">
+            <p class="footer-label"><i class="fa-regular fa-clock" aria-hidden="true"></i> Cambodia local time</p>
+            <time id="live-clock" class="footer-value tabular-nums" aria-live="off">--:--:-- ICT</time>
+          </div>
+          <div class="footer-stat">
+            <p class="footer-label"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Weather data updated</p>
+            <time id="last-updated" class="footer-value">Waiting for first update</time>
+          </div>
+          <div class="footer-stat footer-project">
+            <p class="footer-label"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Project</p>
+            <p class="footer-value">Cambodia Weather Intelligence</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
