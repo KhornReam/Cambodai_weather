@@ -102,6 +102,25 @@ header nav input {
   background: var(--surface) !important;
 }
 
+.cambodia-flag-badge {
+  display: grid;
+  width: 40px;
+  height: 30px;
+  flex: 0 0 40px;
+  place-items: center;
+}
+
+.cambodia-flag-badge img {
+  display: block;
+  width: 38px;
+  height: auto;
+  aspect-ratio: 280 / 157;
+  border: 1px solid rgba(23, 43, 43, 0.14);
+  border-radius: 4px;
+  object-fit: cover;
+  box-shadow: 0 1px 3px rgba(23, 43, 43, 0.14);
+}
+
 main {
   padding-top: 1.5rem !important;
 }
@@ -443,6 +462,13 @@ footer {
   border-left: 1px solid var(--line);
 }
 
+.footer-clock-stat {
+  padding: 0.7rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--weather-accent, var(--leaf)) 24%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--weather-tint, rgba(63, 136, 116, 0.1)) 50%, var(--surface));
+}
+
 .footer-label {
   display: flex;
   align-items: center;
@@ -469,14 +495,66 @@ footer {
 }
 
 #live-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-top: 0.1rem;
   font-family: 'Manrope', sans-serif;
-  font-size: 1rem;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.clock-digits {
+  color: var(--weather-accent-strong, var(--forest));
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-zone {
+  color: var(--weather-accent, var(--leaf));
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.clock-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+  color: var(--weather-accent, var(--leaf));
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.clock-live > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #33a879;
+  box-shadow: 0 0 0 3px rgba(51, 168, 121, 0.13);
+  animation: live-beat 1.8s ease-out infinite;
+}
+
+@keyframes live-beat {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(51, 168, 121, 0.13); }
+  50% { box-shadow: 0 0 0 5px rgba(51, 168, 121, 0.04); }
 }
 
 @media (max-width: 639px) {
   .footer-stat {
     padding-inline: 0.65rem;
+  }
+
+  .footer-clock-stat {
+    padding: 0.6rem 0.7rem;
+  }
+
+  .clock-digits {
+    font-size: 1.35rem;
   }
 }
 
@@ -519,7 +597,7 @@ select:focus-visible {
   header nav > div:last-child {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-columns: minmax(0, 1fr) 40px 44px;
     gap: 0.5rem;
   }
 

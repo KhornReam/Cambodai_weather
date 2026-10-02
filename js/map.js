@@ -7,20 +7,6 @@ const CAMBODIA_BOUNDS = [
   [14.8, 107.7]
 ];
 
-const defaultProvinceStyle = {
-  color: '#1d4ed8',
-  weight: 1,
-  fillColor: '#7dd3fc',
-  fillOpacity: 0.16
-};
-
-const selectedProvinceStyle = {
-  color: '#0f172a',
-  weight: 3,
-  fillColor: '#60a5fa',
-  fillOpacity: 0.45
-};
-
 export async function initMap(onProvinceSelect) {
   const mapContainer = document.getElementById('map');
   if (!mapContainer || typeof window.L === 'undefined') {
@@ -78,17 +64,37 @@ export async function initMap(onProvinceSelect) {
   let selectedLayer = null;
   let selectedPlaceMarker = null;
 
+  const getProvinceStyles = () => {
+    const rootStyle = getComputedStyle(document.documentElement);
+    const accent = rootStyle.getPropertyValue('--weather-accent').trim() || '#3f8874';
+    const strong = rootStyle.getPropertyValue('--weather-accent-strong').trim() || '#173d36';
+
+    return {
+      default: { color: accent, weight: 1, fillColor: accent, fillOpacity: 0.1 },
+      selected: { color: strong, weight: 3, fillColor: accent, fillOpacity: 0.38 }
+    };
+  };
+
+  const updateProvinceStyles = () => {
+    const styles = getProvinceStyles();
+    provinceLayers.forEach((layer) => {
+      layer.setStyle(layer === selectedLayer ? styles.selected : styles.default);
+    });
+    selectedPlaceMarker?.setStyle({ fillColor: styles.default.color });
+  };
+
   const focusLocation = (location) => {
     if (!location) return;
 
+    const provinceStyles = getProvinceStyles();
     const provinceName = location.admin1 || location.name;
     const targetLayer = provinceLayers.get(provinceName);
     if (selectedLayer && selectedLayer !== targetLayer) {
-      selectedLayer.setStyle({ ...defaultProvinceStyle });
+      selectedLayer.setStyle(provinceStyles.default);
     }
     if (targetLayer) {
       selectedLayer = targetLayer;
-      targetLayer.setStyle({ ...selectedProvinceStyle });
+      targetLayer.setStyle(provinceStyles.selected);
     }
 
     if (Number.isFinite(location.latitude) && Number.isFinite(location.longitude)) {
@@ -103,7 +109,7 @@ export async function initMap(onProvinceSelect) {
             radius: 7,
             color: '#fff',
             weight: 2,
-            fillColor: '#e11d48',
+            fillColor: provinceStyles.default.color,
             fillOpacity: 1
           }).addTo(map);
         }
@@ -115,7 +121,7 @@ export async function initMap(onProvinceSelect) {
   try {
     const geoJsonData = await loadProvinceGeoJSON();
     const provinceLayer = L.geoJSON(geoJsonData, {
-      style: () => ({ ...defaultProvinceStyle }),
+      style: () => getProvinceStyles().default,
       onEachFeature: (feature, layer) => {
         const provinceName = feature.properties?.name || 'Province';
         provinceLayers.set(provinceName, layer);
@@ -127,23 +133,23 @@ export async function initMap(onProvinceSelect) {
 
         layer.on('mouseover', () => {
           if (selectedLayer !== layer) {
-            layer.setStyle({ ...defaultProvinceStyle, fillOpacity: 0.28, weight: 2 });
+            layer.setStyle({ ...getProvinceStyles().default, fillOpacity: 0.25, weight: 2 });
           }
         });
 
         layer.on('mouseout', () => {
           if (selectedLayer !== layer) {
-            layer.setStyle({ ...defaultProvinceStyle });
+            layer.setStyle(getProvinceStyles().default);
           }
         });
 
         layer.on('click', () => {
           if (selectedLayer && selectedLayer !== layer) {
-            selectedLayer.setStyle({ ...defaultProvinceStyle });
+            selectedLayer.setStyle(getProvinceStyles().default);
           }
 
           selectedLayer = layer;
-          layer.setStyle({ ...selectedProvinceStyle });
+          layer.setStyle(getProvinceStyles().selected);
 
           if (onProvinceSelect) {
             onProvinceSelect(provinceName);
@@ -158,6 +164,8 @@ export async function initMap(onProvinceSelect) {
       const location = event.detail?.location || CAMBODIA_LOCATIONS.find((item) => item.name === event.detail?.locationName);
       focusLocation(location);
     });
+
+    window.addEventListener('weather:dashboard-updated', updateProvinceStyles);
   } catch (error) {
     console.error('GeoJSON map data failed to load:', error);
   }

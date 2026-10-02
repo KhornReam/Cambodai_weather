@@ -1,6 +1,6 @@
 import { CAMBODIA_LOCATIONS } from './locations.js';
 import { fetchWeatherData } from './api.js';
-import { formatTemperature, getWeatherDescription, getWeatherIconClass } from './weather.js';
+import { formatTemperature, getWeatherDescription, getWeatherIconClass, getWeatherTheme, isRainExpectedToday } from './weather.js';
 
 const weatherCache = new Map();
 const markerMap = new Map();
@@ -186,9 +186,10 @@ function getWeatherIcon(code) {
 }
 
 function createMarkerIcon(temperature, weatherCode) {
+  const weatherTheme = getWeatherTheme(weatherCode);
   return L.divIcon({
     html: `
-      <div class="weather-marker">
+      <div class="weather-marker" data-weather-theme="${weatherTheme}">
         <span>${Math.round(temperature)}°</span>
         <small>${getWeatherIcon(weatherCode)}</small>
       </div>
@@ -216,6 +217,7 @@ function renderMapInfoPanel(location, data) {
   const current = data.current || {};
   const daily = data.daily || {};
   const requestId = ++photoRequestId;
+  const weatherTheme = getWeatherTheme(current.weather_code);
 
   panel.innerHTML = `
     <div class="mb-4 flex items-center justify-between gap-3">
@@ -223,14 +225,14 @@ function renderMapInfoPanel(location, data) {
         <p class="text-xs uppercase tracking-[0.18em] text-brand-600">Selected place</p>
         <h3 class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">${location.name}</h3>
       </div>
-      <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-2xl dark:bg-sky-500/10">
+      <div class="weather-icon-badge flex h-12 w-12 items-center justify-center rounded-2xl text-2xl" data-weather-theme="${weatherTheme}">
         ${getWeatherIcon(current.weather_code)}
       </div>
     </div>
 
     <div class="map-place-photo-slot" aria-live="polite">Searching for a verified place photo...</div>
 
-    <div class="mb-4 rounded-2xl bg-sky-50 p-3 text-sky-900 dark:bg-sky-500/10 dark:text-sky-100">
+    <div class="map-weather-summary mb-4 rounded-2xl p-3">
       <div class="flex items-end gap-2">
         <span class="text-4xl font-black">${formatTemperature(current.temperature_2m)}</span>
         <span class="pb-1 text-sm">Feels like ${formatTemperature(current.apparent_temperature)}</span>
@@ -305,13 +307,50 @@ export async function initializeMapWeatherLayer(map, onProvinceSelect) {
     }))
   );
 
-  for (const result of locationWeather) {
+  const rainSummary = {
+    date: null,
+    total: CAMBODIA_LOCATIONS.length,
+    available: 0,
+    rainExpected: [],
+    mostlyDry: [],
+    unavailable: []
+  };
+
+  for (const [index, result] of locationWeather.entries()) {
     if (result.status === 'rejected') {
       console.warn('Province marker weather could not be loaded:', result.reason);
+      rainSummary.unavailable.push({ location: CAMBODIA_LOCATIONS[index], reason: 'Forecast unavailable' });
       continue;
     }
 
     const { location, data } = result.value;
+    const daily = data.daily || {};
+    const expectedRain = isRainExpectedToday(daily);
+    rainSummary.date ||= daily.time?.[0] || null;
+
+    const provinceForecast = {
+      location,
+      probability: daily.precipitation_probability_max?.[0] != null && Number.isFinite(Number(daily.precipitation_probability_max[0]))
+        ? Number(daily.precipitation_probability_max[0])
+        : null,
+      precipitation: daily.precipitation_sum?.[0] != null && Number.isFinite(Number(daily.precipitation_sum[0]))
+        ? Number(daily.precipitation_sum[0])
+        : null,
+      weatherCode: daily.weather_code?.[0] != null && Number.isFinite(Number(daily.weather_code[0]))
+        ? Number(daily.weather_code[0])
+        : null
+    };
+
+    if (expectedRain === null) {
+      rainSummary.unavailable.push({ ...provinceForecast, reason: 'Rain forecast unavailable' });
+    } else if (expectedRain) {
+      rainSummary.rainExpected.push(provinceForecast);
+      rainSummary.available += 1;
+    } else {
+      rainSummary.mostlyDry.push(provinceForecast);
+      rainSummary.available += 1;
+    }
+
     const current = data.current || {};
     const marker = L.marker([location.latitude, location.longitude], {
       icon: createMarkerIcon(current.temperature_2m ?? 0, current.weather_code ?? 0)
@@ -333,6 +372,8 @@ export async function initializeMapWeatherLayer(map, onProvinceSelect) {
 
     markerMap.set(location.name, marker);
   }
+
+  window.dispatchEvent(new CustomEvent('weather:province-rain-summary', { detail: rainSummary }));
 
   return { markerLayer, markerMap, renderMapInfoPanel };
 }

@@ -1,3 +1,76 @@
+function renderProvinceRainList(summary, groupName) {
+  const dialog = document.getElementById('province-rain-dialog');
+  const title = document.getElementById('province-rain-dialog-title');
+  const dateLabel = document.getElementById('province-rain-dialog-date');
+  const summaryText = document.getElementById('province-rain-dialog-summary');
+  const list = document.getElementById('province-rain-list');
+  if (!dialog || !title || !dateLabel || !summaryText || !list) return;
+
+  const rainExpected = groupName === 'rainExpected';
+  const provinces = [...(rainExpected ? summary.rainExpected : summary.mostlyDry)]
+    .sort((first, second) => first.location.name.localeCompare(second.location.name));
+  const date = summary.date
+    ? new Intl.DateTimeFormat('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        timeZone: 'Asia/Phnom_Penh'
+      }).format(new Date(`${summary.date}T12:00:00+07:00`))
+    : 'Today';
+
+  title.textContent = rainExpected ? `Rain expected · ${provinces.length}` : `Mostly dry · ${provinces.length}`;
+  dateLabel.textContent = date;
+  summaryText.textContent = rainExpected
+    ? 'These provinces meet the rain outlook criteria for today.'
+    : 'These provinces do not currently meet the rain outlook criteria for today.';
+  list.replaceChildren();
+
+  if (!provinces.length) {
+    const empty = document.createElement('p');
+    empty.className = 'province-rain-empty';
+    empty.textContent = rainExpected ? 'No provinces currently meet the rain criteria.' : 'No provinces are currently classified as mostly dry.';
+    list.append(empty);
+  }
+
+  provinces.forEach((forecast) => {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'province-rain-row';
+    const name = document.createElement('span');
+    name.className = 'province-rain-name';
+    name.textContent = forecast.location.name;
+    const detail = document.createElement('span');
+    detail.className = 'province-rain-detail';
+    const chance = forecast.probability != null && Number.isFinite(Number(forecast.probability))
+      ? `${forecast.probability}% chance`
+      : 'Chance unavailable';
+    const amount = forecast.precipitation != null && Number.isFinite(Number(forecast.precipitation))
+      ? `${Number(forecast.precipitation).toFixed(1)} mm`
+      : 'amount unavailable';
+    detail.textContent = `${chance} · ${amount}`;
+    const arrow = document.createElement('i');
+    arrow.className = 'fa-solid fa-arrow-right';
+    arrow.setAttribute('aria-hidden', 'true');
+    row.append(name, detail, arrow);
+    row.addEventListener('click', () => {
+      dialog.close();
+      window.dispatchEvent(new CustomEvent('location:selected', {
+        detail: { locationName: forecast.location.name }
+      }));
+    });
+    list.append(row);
+  });
+
+  if (summary.unavailable?.length) {
+    const unavailable = document.createElement('p');
+    unavailable.className = 'province-rain-unavailable';
+    unavailable.textContent = `Forecast unavailable for ${summary.unavailable.length} province${summary.unavailable.length === 1 ? '' : 's'}.`;
+    list.append(unavailable);
+  }
+
+  if (!dialog.open) dialog.showModal();
+}
+
 export function initializeUI(appState) {
   const locationSelect = document.getElementById('location-select');
   const themeToggle = document.getElementById('theme-toggle');
@@ -16,6 +89,41 @@ export function initializeUI(appState) {
   if (!locationSelect || !themeToggle || !searchInput || !refreshButton) {
     return;
   }
+
+  let provinceRainSummary = null;
+  window.addEventListener('weather:province-rain-summary', (event) => {
+    provinceRainSummary = event.detail;
+    if (!provinceRainSummary) return;
+
+    const rainCount = document.getElementById('rain-expected-count');
+    const dryCount = document.getElementById('rain-mostly-dry-count');
+    const coverage = document.getElementById('rain-outlook-coverage');
+    const rainButton = document.getElementById('rain-expected-card');
+    const dryButton = document.getElementById('rain-mostly-dry-card');
+
+    if (rainCount) rainCount.textContent = provinceRainSummary.rainExpected.length;
+    if (dryCount) dryCount.textContent = provinceRainSummary.mostlyDry.length;
+    if (coverage) {
+      const unavailableCount = provinceRainSummary.unavailable?.length || 0;
+      coverage.textContent = unavailableCount
+        ? `${provinceRainSummary.available} of ${provinceRainSummary.total} forecasts available · ${unavailableCount} unavailable`
+        : `All ${provinceRainSummary.total} province forecasts available`;
+    }
+    if (rainButton) rainButton.disabled = false;
+    if (dryButton) dryButton.disabled = false;
+  });
+
+  document.querySelectorAll('[data-rain-group]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (provinceRainSummary) renderProvinceRainList(provinceRainSummary, button.dataset.rainGroup);
+    });
+  });
+
+  const provinceRainDialog = document.getElementById('province-rain-dialog');
+  document.getElementById('close-province-rain-dialog')?.addEventListener('click', () => provinceRainDialog?.close());
+  provinceRainDialog?.addEventListener('click', (event) => {
+    if (event.target === provinceRainDialog) provinceRainDialog.close();
+  });
 
   const savedTheme = localStorage.getItem('cambodia-weather-theme');
   if (savedTheme === 'dark') {
@@ -245,12 +353,21 @@ export function startCambodiaClock() {
     }
 
     if (clockElement) {
-      clockElement.textContent = `${time} ICT`;
+      const digits = clockElement.querySelector('.clock-digits');
+      const zone = clockElement.querySelector('.clock-zone');
+      if (digits && zone) {
+        digits.textContent = time;
+        zone.textContent = 'ICT';
+      } else {
+        clockElement.textContent = `${time} ICT`;
+      }
       clockElement.dateTime = now.toISOString();
     }
   };
 
   tick();
+  document.addEventListener('visibilitychange', tick);
+  window.addEventListener('focus', tick);
   window.setInterval(tick, 1000);
 }
 

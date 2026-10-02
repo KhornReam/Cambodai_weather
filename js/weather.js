@@ -33,11 +33,40 @@ export function getWeatherDescription(code) {
   return WEATHER_CODE_MAP[code] ?? 'Weather conditions unavailable';
 }
 
+export function getWeatherTheme(code) {
+  const weatherCode = Number(code);
+
+  if ([95, 96, 99].includes(weatherCode)) return 'storm';
+  if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) return 'snow';
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)) return 'rain';
+  if ([45, 48].includes(weatherCode)) return 'fog';
+  if (weatherCode === 3) return 'cloudy';
+  if ([1, 2].includes(weatherCode)) return 'partly-cloudy';
+
+  return weatherCode === 0 ? 'clear' : 'cloudy';
+}
+
+export function isRainExpectedToday(dailyData) {
+  const rawProbability = dailyData?.precipitation_probability_max?.[0];
+  const rawAccumulation = dailyData?.precipitation_sum?.[0];
+  const rawWeatherCode = dailyData?.weather_code?.[0];
+  const probability = rawProbability == null ? Number.NaN : Number(rawProbability);
+  const accumulation = rawAccumulation == null ? Number.NaN : Number(rawAccumulation);
+  const weatherCode = rawWeatherCode == null ? Number.NaN : Number(rawWeatherCode);
+  const hasForecastValue = Number.isFinite(probability) || Number.isFinite(accumulation) || Number.isFinite(weatherCode);
+
+  if (!hasForecastValue) return null;
+
+  const rainyWeatherCode = [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99].includes(weatherCode);
+  return rainyWeatherCode || probability >= 40 || accumulation >= 0.1;
+}
+
 export function getWeatherIconClass(code) {
   const weatherCode = Number(code);
 
   if (weatherCode === 0) return 'fa-sun';
-  if (weatherCode === 1 || weatherCode === 2) return 'fa-cloud-sun';
+  if (weatherCode === 1) return 'fa-cloud-sun';
+  if (weatherCode === 2) return 'fa-cloud-sun';
   if (weatherCode === 3) return 'fa-cloud';
   if ([45, 48].includes(weatherCode)) return 'fa-smog';
   if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)) return 'fa-cloud-rain';

@@ -1,6 +1,6 @@
 import { CAMBODIA_LOCATIONS, DEFAULT_LOCATION } from './locations.js';
 import { fetchWeatherData } from './api.js';
-import { buildNightRainMessage, formatTemperature, getDailyHighLow, getWeatherDescription, getWeatherIconClass } from './weather.js';
+import { buildNightRainMessage, formatTemperature, getDailyHighLow, getWeatherDescription, getWeatherIconClass, getWeatherTheme } from './weather.js';
 import { initializeUI, populateLocationSelect, renderLocationOverview, renderErrorState, setLoadingState, startCambodiaClock, updateLastUpdated } from './ui.js';
 import { initMap } from './map.js';
 
@@ -29,6 +29,11 @@ function updateWeatherDashboard(data) {
   const daily = data.daily;
   const hourly = data.hourly;
   const todayHighLow = getDailyHighLow(daily);
+  const weatherTheme = getWeatherTheme(current.weather_code);
+  const daylight = Number(current.is_day) === 0 ? 'night' : 'day';
+
+  document.documentElement.dataset.weatherTheme = weatherTheme;
+  document.documentElement.dataset.daylight = daylight;
 
   const locationSelect = document.getElementById('location-select');
   if (locationSelect) {
@@ -81,13 +86,46 @@ function updateWeatherDashboard(data) {
         const weatherIcon = getWeatherIconClass(hourly.weather_code[index]);
 
         return `
-          <div class="forecast-item ${isRainy ? 'rainy' : ''}">
+          <div class="forecast-item ${isRainy ? 'rainy' : ''}" data-weather-theme="${getWeatherTheme(hourly.weather_code[index])}">
             <p class="text-xs text-slate-500 dark:text-slate-400">${new Date(time).toLocaleTimeString([], { hour: 'numeric' })}</p>
             <div class="mt-2 flex justify-center text-lg text-sky-500">
               <i class="fa-solid ${weatherIcon}" aria-hidden="true"></i>
             </div>
             <p class="mt-2 text-center text-lg font-bold">${formatTemperature(temp)}</p>
             <p class="mt-1 text-center text-xs text-slate-500 dark:text-slate-400">${precipChance}% rain</p>
+          </div>
+        `;
+      })
+      .join('');
+  }
+
+  const dailyContainer = document.getElementById('daily-forecast');
+  if (dailyContainer) {
+    dailyContainer.innerHTML = daily.time
+      .slice(0, 7)
+      .map((date, index) => {
+        const conditionCode = daily.weather_code[index];
+        const conditionTheme = getWeatherTheme(conditionCode);
+        const precipChance = daily.precipitation_probability_max?.[index];
+        const day = new Intl.DateTimeFormat('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          timeZone: 'Asia/Phnom_Penh'
+        }).format(new Date(`${date}T12:00:00+07:00`));
+
+        return `
+          <div class="daily-forecast-row" data-weather-theme="${conditionTheme}">
+            <p class="daily-forecast-day">${index === 0 ? 'Today' : day}</p>
+            <span class="daily-forecast-condition" aria-label="${getWeatherDescription(conditionCode)}">
+              <i class="fa-solid ${getWeatherIconClass(conditionCode)}" aria-hidden="true"></i>
+            </span>
+            <p class="daily-forecast-description">${getWeatherDescription(conditionCode)}</p>
+            <p class="daily-forecast-rain"><i class="fa-solid fa-droplet" aria-hidden="true"></i> ${precipChance ?? '--'}%</p>
+            <p class="daily-forecast-temperatures">
+              <strong>${formatTemperature(daily.temperature_2m_max?.[index])}</strong>
+              <span>${formatTemperature(daily.temperature_2m_min?.[index])}</span>
+            </p>
           </div>
         `;
       })
